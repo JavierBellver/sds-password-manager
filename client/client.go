@@ -10,17 +10,13 @@ Conceptos: JSON, TLS
 package main
 
 import (
-	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
-	"os/signal"
-	"time"
 )
 
 // función para comprobar errores (ahorra escritura)
@@ -46,68 +42,7 @@ func response(w io.Writer, ok bool, msg string) {
 
 func main() {
 
-	fmt.Println("Un ejemplo de server/cliente mediante TLS/HTTP en Go.")
-	s := "Introduce srv para funcionalidad de servidor y cli para funcionalidad de cliente"
-
-	if len(os.Args) > 1 {
-		switch os.Args[1] {
-		case "srv":
-			fmt.Println("Entrando en modo servidor...")
-			server()
-		case "cli":
-			fmt.Println("Entrando en modo cliente...")
-			client()
-		default:
-			fmt.Println("Parámetro '", os.Args[1], "' desconocido. ", s)
-		}
-	} else {
-		fmt.Println(s)
-	}
-}
-
-/***
-SERVIDOR
-***/
-
-// gestiona el modo servidor
-func server() {
-	// suscripción SIGINT
-	stopChan := make(chan os.Signal)
-	signal.Notify(stopChan, os.Interrupt)
-
-	mux := http.NewServeMux()
-	mux.Handle("/", http.HandlerFunc(handler))
-
-	srv := &http.Server{Addr: ":10443", Handler: mux}
-
-	go func() {
-		if err := srv.ListenAndServeTLS("../server/certificado/cert.pem", "../server/certificado/key.pem"); err != nil {
-			log.Printf("listen: %s\n", err)
-		}
-	}()
-
-	<-stopChan // espera señal SIGINT
-	log.Println("Apagando servidor ...")
-
-	// apagar servidor de forma segura
-	ctx, fnc := context.WithTimeout(context.Background(), 5*time.Second)
-	fnc()
-	srv.Shutdown(ctx)
-
-	log.Println("Servidor detenido correctamente")
-}
-
-func handler(w http.ResponseWriter, req *http.Request) {
-	req.ParseForm()                              // es necesario parsear el formulario
-	w.Header().Set("Content-Type", "text/plain") // cabecera estándar
-
-	switch req.Form.Get("cmd") { // comprobamos comando desde el cliente
-	case "hola": // ** registro
-		response(w, true, "Hola "+req.Form.Get("mensaje"))
-	default:
-		response(w, false, "Comando inválido")
-	}
-
+	client()
 }
 
 /***
@@ -130,6 +65,7 @@ func client() {
 	data := url.Values{}      // estructura para contener los valores
 	data.Set("cmd", "hola")   // comando (string)
 	data.Set("mensaje", text) // usuario (string)
+	fmt.Println(data)
 
 	r, err := client.PostForm("https://localhost:10443", data) // enviamos por POST
 	chk(err)
