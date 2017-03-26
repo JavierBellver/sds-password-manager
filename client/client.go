@@ -40,8 +40,24 @@ func response(w io.Writer, ok bool, msg string) {
 	w.Write(rJSON)                 // escribimos el JSON resultante
 }
 
-func main() {
+func registerUser(client http.Client) {
+	var login, password string
 
+	fmt.Println("Introduce el usuario: ")
+	fmt.Scanf("%s\n", &login)
+	fmt.Println("Introduce la contraseña: ")
+	fmt.Scanf("%s", &password)
+	data := url.Values{}
+	data.Set("login", login)
+	data.Set("password", password)
+
+	r, err := client.PostForm("https://localhost:8081/registro", data)
+	chk(err)
+	io.Copy(os.Stdout, r.Body)
+	fmt.Println()
+}
+
+func main() {
 	client()
 }
 
@@ -51,9 +67,8 @@ CLIENTE
 
 // gestiona el modo cliente
 func client() {
-	var text string
-	/* creamos un cliente especial que no comprueba la validez de los certificados
-	esto es necesario por que usamos certificados autofirmados (para pruebas) */
+	/*var text string
+
 	fmt.Println("Introduce texto: ")
 	fmt.Scanf("%s", &text)
 	tr := &http.Transport{
@@ -61,7 +76,6 @@ func client() {
 	}
 	client := &http.Client{Transport: tr}
 
-	// ** ejemplo de registro
 	data := url.Values{}      // estructura para contener los valores
 	data.Set("cmd", "hola")   // comando (string)
 	data.Set("mensaje", text) // usuario (string)
@@ -70,5 +84,12 @@ func client() {
 	r, err := client.PostForm("https://localhost:8081", data) // enviamos por POST
 	chk(err)
 	io.Copy(os.Stdout, r.Body) // mostramos el cuerpo de la respuesta (es un reader)
-	fmt.Println()
+	fmt.Println()*/
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
+	registerUser(*client)
 }

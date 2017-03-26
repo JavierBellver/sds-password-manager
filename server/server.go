@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -22,6 +23,67 @@ type responseBody struct {
 	Msg string
 }
 
+var path = "/users.txt"
+
+// CreateFile crea el fichero donde guardaremos los usuarios
+func createFile() {
+	// detect if file exists
+	var _, err = os.Stat(path)
+
+	// create file if not exists
+	if os.IsNotExist(err) {
+		var file, err = os.Create(path)
+		chk(err)
+		defer file.Close()
+	}
+}
+
+// WriteUser Registra a un usuario en el fichero
+func writeUser(login string, password string) {
+	// open file using READ & WRITE permission
+	var file, err = os.OpenFile(path, os.O_RDWR, 0644)
+	chk(err)
+	defer file.Close()
+
+	// write some text to file
+	_, err = file.WriteString("login:" + login + "|")
+	chk(err)
+	_, err = file.WriteString("password:" + password + "|\n")
+	chk(err)
+
+	// save changes
+	err = file.Sync()
+	chk(err)
+}
+
+// ReadUser devuelve a un usuario desde el fichero
+func readUser() {
+	// re-open file
+	var file, err = os.OpenFile(path, os.O_RDWR, 0644)
+	chk(err)
+	defer file.Close()
+
+	// read file
+	var text = make([]byte, 1024)
+	for {
+		n, error := file.Read(text)
+		if error != io.EOF {
+			chk(error)
+		}
+		if n == 0 {
+			break
+		}
+	}
+	fmt.Println(string(text))
+	chk(err)
+}
+
+//DeleteFile borra el fichero
+func deleteFile() {
+	var err = os.Remove(path)
+	chk(err)
+}
+
 func response(w io.Writer, ok bool, msg string) {
 	r := responseBody{Ok: ok, Msg: msg}
 	rJSON, err := json.Marshal(&r)
@@ -29,29 +91,31 @@ func response(w io.Writer, ok bool, msg string) {
 	w.Write(rJSON)
 }
 
-func redirectToHTTPS(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "https://localhost:8082"+r.RequestURI, http.StatusMovedPermanently)
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+
 }
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
+func registroHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	w.Header().Set("Content-Type", "text/plain")
 
-	switch r.Form.Get("cmd") {
-	case "hola":
-		response(w, true, "Hola "+r.Form.Get("mensaje"))
-	default:
-		response(w, false, "Comando inválido")
-	}
+	login := r.Form.Get("login")
+	password := r.Form.Get("password")
+
+	writeUser(login, password)
+	response(w, true, "UsuarioRegistrado")
 }
 
 func main() {
 	stopChan := make(chan os.Signal)
 	signal.Notify(stopChan, os.Interrupt)
 
+	createFile()
+
 	httpsMux := http.NewServeMux()
 
 	httpsMux.Handle("/", http.HandlerFunc(homeHandler))
+	httpsMux.Handle("/registro", http.HandlerFunc(registroHandler))
 
 	srv := &http.Server{Addr: ":8081", Handler: httpsMux}
 
