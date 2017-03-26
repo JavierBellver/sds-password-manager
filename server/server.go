@@ -23,7 +23,7 @@ type responseBody struct {
 	Msg string
 }
 
-var path = "/users.txt"
+var path = "./users.txt"
 
 // CreateFile crea el fichero donde guardaremos los usuarios
 func createFile() {
