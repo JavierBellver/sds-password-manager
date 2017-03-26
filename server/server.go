@@ -41,14 +41,14 @@ func createFile() {
 // WriteUser Registra a un usuario en el fichero
 func writeUser(login string, password string) {
 	// open file using READ & WRITE permission
-	var file, err = os.OpenFile(path, os.O_RDWR, 0644)
+	var file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND, 0660)
 	chk(err)
 	defer file.Close()
 
 	// write some text to file
-	_, err = file.WriteString("login:" + login + "|")
+	_, err = file.WriteString("[login:" + login + "|")
 	chk(err)
-	_, err = file.WriteString("password:" + password + "|\n")
+	_, err = file.WriteString("password:" + password + "]\n")
 	chk(err)
 
 	// save changes

@@ -1,1 +1,3 @@
-login:login|password:pass|
+[login:hello|password:you]
+[login:yoyo|password:mother]
+[login:another|password:one]
