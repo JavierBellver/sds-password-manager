@@ -1,0 +1,1 @@
+[login:usuario|site:facebook.com|siteUsername:pepito|sitePassword:passwordpito]
