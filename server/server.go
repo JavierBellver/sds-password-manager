@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -56,26 +57,27 @@ func writeUser(login string, password string) {
 	chk(err)
 }
 
-// ReadUser devuelve a un usuario desde el fichero
-func readUser() {
-	// re-open file
-	var file, err = os.OpenFile(path, os.O_RDWR, 0644)
-	chk(err)
+func validateUser(w http.ResponseWriter, login string, pass string) {
+	file, err := os.Open(path)
+	var res bool
+	res = false
+	s := "[login:" + login + "|password:" + pass + "]"
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer file.Close()
 
-	// read file
-	var text = make([]byte, 1024)
-	for {
-		n, error := file.Read(text)
-		if error != io.EOF {
-			chk(error)
-		}
-		if n == 0 {
-			break
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		fmt.Println(s)
+		if s == scanner.Text() {
+			res = true
 		}
 	}
-	fmt.Println(string(text))
-	chk(err)
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	response(w, res, "Resultado")
 }
 
 //DeleteFile borra el fichero
@@ -93,6 +95,12 @@ func response(w io.Writer, ok bool, msg string) {
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	w.Header().Set("Content-Type", "text/plain")
+	validateUser(w, r.Form.Get("login"), r.Form.Get("password"))
 }
 
 func registroHandler(w http.ResponseWriter, r *http.Request) {
@@ -116,6 +124,7 @@ func main() {
 
 	httpsMux.Handle("/", http.HandlerFunc(homeHandler))
 	httpsMux.Handle("/registro", http.HandlerFunc(registroHandler))
+	httpsMux.Handle("/login", http.HandlerFunc(loginHandler))
 
 	srv := &http.Server{Addr: ":8081", Handler: httpsMux}
 
