@@ -1,1 +1,2 @@
 [login:usuario|site:facebook.com|siteUsername:pepito|sitePassword:passwordpito]
+[login:hello|site:foodie.com|siteUsername:food|sitePassword:eater]

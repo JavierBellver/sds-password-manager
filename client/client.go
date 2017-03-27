@@ -40,7 +40,6 @@ func response(w io.Writer, ok bool, msg string) {
 	w.Write(rJSON)                 // escribimos el JSON resultante
 }
 
-
 func login(client http.Client) {
 	var login, password string
 	fmt.Println("Introduce el usuario: ")
@@ -54,7 +53,7 @@ func login(client http.Client) {
 	chk(err)
 	io.Copy(os.Stdout, r.Body)
 	fmt.Println()
-
+}
 
 func storePassword(client http.Client) {
 	var login, site, siteUsername, sitePassword string
