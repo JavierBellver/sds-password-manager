@@ -40,6 +40,22 @@ func response(w io.Writer, ok bool, msg string) {
 	w.Write(rJSON)                 // escribimos el JSON resultante
 }
 
+
+func login(client http.Client) {
+	var login, password string
+	fmt.Println("Introduce el usuario: ")
+	fmt.Scanf("%s\n", &login)
+	fmt.Println("Introduce el password: ")
+	fmt.Scanf("%s", &password)
+	data := url.Values{}
+	data.Set("login", login)
+	data.Set("password", password)
+	r, err := client.PostForm("https://localhost:8081/login", data)
+	chk(err)
+	io.Copy(os.Stdout, r.Body)
+	fmt.Println()
+
+
 func storePassword(client http.Client) {
 	var login, site, siteUsername, sitePassword string
 
@@ -73,15 +89,10 @@ func registerUser(client http.Client) {
 	data := url.Values{}
 	data.Set("login", login)
 	data.Set("password", password)
-
 	r, err := client.PostForm("https://localhost:8081/registro", data)
 	chk(err)
 	io.Copy(os.Stdout, r.Body)
 	fmt.Println()
-}
-
-func main() {
-	client()
 }
 
 /***
@@ -89,7 +100,28 @@ CLIENTE
 ***/
 
 // gestiona el modo cliente
-func client() {
+func main() {
+
+	var opc string
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
+	fmt.Println("Acciones: ")
+	fmt.Println("1.Login")
+	fmt.Println("2.Registro")
+	fmt.Scanf("%s\n", &opc)
+
+	switch opc {
+	case "1":
+		login(*client)
+	case "2":
+		registerUser(*client)
+	default:
+		fmt.Println(opc)
+	}
 	/*var text string
 
 	fmt.Println("Introduce texto: ")
@@ -108,11 +140,4 @@ func client() {
 	chk(err)
 	io.Copy(os.Stdout, r.Body) // mostramos el cuerpo de la respuesta (es un reader)
 	fmt.Println()*/
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
-
-	storePassword(*client)
 }
