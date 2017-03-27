@@ -18,19 +18,24 @@ func chk(e error) {
 	}
 }
 
+type siteData struct {
+	Login        string
+	Site         string
+	SiteUsername string
+	SitePassword string
+}
+
 type responseBody struct {
 	Ok  bool
 	Msg string
 }
 
 var path = "./users.txt"
+var storagePath = "./storage.txt"
 
-// CreateFile crea el fichero donde guardaremos los usuarios
-func createFile() {
-	// detect if file exists
+func createUsersFile() {
 	var _, err = os.Stat(path)
 
-	// create file if not exists
 	if os.IsNotExist(err) {
 		var file, err = os.Create(path)
 		chk(err)
@@ -38,20 +43,38 @@ func createFile() {
 	}
 }
 
-// WriteUser Registra a un usuario en el fichero
+func createStorageFile() {
+	var _, err = os.Stat(storagePath)
+
+	if os.IsNotExist(err) {
+		var file, err = os.Create(storagePath)
+		chk(err)
+		defer file.Close()
+	}
+}
+
 func writeUser(login string, password string) {
-	// open file using READ & WRITE permission
 	var file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND, 0660)
 	chk(err)
 	defer file.Close()
 
-	// write some text to file
 	_, err = file.WriteString("[login:" + login + "|")
 	chk(err)
 	_, err = file.WriteString("password:" + password + "]\n")
 	chk(err)
 
-	// save changes
+	err = file.Sync()
+	chk(err)
+}
+
+func writeSiteData(data siteData) {
+	var file, err = os.OpenFile(storagePath, os.O_RDWR|os.O_APPEND, 0660)
+	chk(err)
+	defer file.Close()
+
+	_, err = file.WriteString("[login:" + data.Login)
+	chk(err)
+
 	err = file.Sync()
 	chk(err)
 }
@@ -106,16 +129,33 @@ func registroHandler(w http.ResponseWriter, r *http.Request) {
 	response(w, true, "UsuarioRegistrado")
 }
 
+func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	w.Header().Set("Content-Type", "text/plain")
+
+	login := r.Form.Get("login")
+	site := r.Form.Get("site")
+	siteUsername := r.Form.Get("siteUsername")
+	sitePassword := r.Form.Get("sitePassword")
+
+	data := siteData{Login: login, Site: site, SiteUsername: siteUsername, SitePassword: sitePassword}
+
+	writeSiteData(data)
+	response(w, true, "Información guardada")
+}
+
 func main() {
 	stopChan := make(chan os.Signal)
 	signal.Notify(stopChan, os.Interrupt)
 
-	createFile()
+	createUsersFile()
+	createStorageFile()
 
 	httpsMux := http.NewServeMux()
 
 	httpsMux.Handle("/", http.HandlerFunc(homeHandler))
 	httpsMux.Handle("/registro", http.HandlerFunc(registroHandler))
+	httpsMux.Handle("/guardarContraseña", http.HandlerFunc(storePasswordHandler))
 
 	srv := &http.Server{Addr: ":8081", Handler: httpsMux}
 
