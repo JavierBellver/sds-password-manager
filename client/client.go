@@ -40,6 +40,29 @@ func response(w io.Writer, ok bool, msg string) {
 	w.Write(rJSON)                 // escribimos el JSON resultante
 }
 
+func storePassword(client http.Client) {
+	var login, site, siteUsername, sitePassword string
+
+	fmt.Println("Introduce el nombre de usuario: ")
+	fmt.Scanf("%s\n", &login)
+	fmt.Println("Introduce el nombre del sitio web: ")
+	fmt.Scanf("%s\n", &site)
+	fmt.Println("Introduce tu nombre de usuario del sitio web: ")
+	fmt.Scanf("%s\n", &siteUsername)
+	fmt.Println("Introduce la contraseña en el sitio web: ")
+	fmt.Scanf("%s\n", &sitePassword)
+	data := url.Values{}
+	data.Set("login", login)
+	data.Set("site", site)
+	data.Set("siteUsername", siteUsername)
+	data.Set("sitePassword", sitePassword)
+
+	r, err := client.PostForm("https://localhost:8081/guardarContraseña", data)
+	chk(err)
+	io.Copy(os.Stdout, r.Body)
+	fmt.Println()
+}
+
 func registerUser(client http.Client) {
 	var login, password string
 

@@ -72,7 +72,13 @@ func writeSiteData(data siteData) {
 	chk(err)
 	defer file.Close()
 
-	_, err = file.WriteString("[login:" + data.Login)
+	_, err = file.WriteString("[login:" + data.Login + "|")
+	chk(err)
+	_, err = file.WriteString("site:" + data.Site + "|")
+	chk(err)
+	_, err = file.WriteString("siteUsername:" + data.SiteUsername + "|")
+	chk(err)
+	_, err = file.WriteString("sitePassword:" + data.SitePassword + "]\n")
 	chk(err)
 
 	err = file.Sync()
