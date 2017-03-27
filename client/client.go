@@ -114,5 +114,5 @@ func client() {
 	}
 	client := &http.Client{Transport: tr}
 
-	registerUser(*client)
+	storePassword(*client)
 }
