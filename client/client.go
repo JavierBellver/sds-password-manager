@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -34,12 +35,13 @@ type resp struct {
 	Msg string // mensaje adicional
 }
 
-// función para escribir una respuesta del servidor
-func response(w io.Writer, ok bool, msg string) {
-	r := resp{Ok: ok, Msg: msg}    // formateamos respuesta
-	rJSON, err := json.Marshal(&r) // codificamos en JSON
-	chk(err)                       // comprobamos error
-	w.Write(rJSON)                 // escribimos el JSON resultante
+func parseResponse(body []byte) (*resp, error) {
+	var r = new(resp)
+	err := json.Unmarshal(body, &r)
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+	return r, err
 }
 
 func login(client http.Client) {
@@ -52,8 +54,12 @@ func login(client http.Client) {
 	data.Set("login", login)
 	data.Set("password", password)
 	r, err := client.PostForm("https://localhost:8081/login", data)
-
 	chk(err)
+	body, err := ioutil.ReadAll(r.Body)
+	chk(err)
+	res, err := parseResponse([]byte(body))
+	chk(err)
+	token = res.Msg
 	io.Copy(os.Stdout, r.Body)
 	fmt.Println()
 }
@@ -124,22 +130,4 @@ func main() {
 	default:
 		fmt.Println(opc)
 	}
-	/*var text string
-
-	fmt.Println("Introduce texto: ")
-	fmt.Scanf("%s", &text)
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
-
-	data := url.Values{}      // estructura para contener los valores
-	data.Set("cmd", "hola")   // comando (string)
-	data.Set("mensaje", text) // usuario (string)
-	fmt.Println(data)
-
-	r, err := client.PostForm("https://localhost:8081", data) // enviamos por POST
-	chk(err)
-	io.Copy(os.Stdout, r.Body) // mostramos el cuerpo de la respuesta (es un reader)
-	fmt.Println()*/
 }
