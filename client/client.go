@@ -52,6 +52,7 @@ func login(client http.Client) {
 	data.Set("login", login)
 	data.Set("password", password)
 	r, err := client.PostForm("https://localhost:8081/login", data)
+
 	chk(err)
 	io.Copy(os.Stdout, r.Body)
 	fmt.Println()
@@ -59,6 +60,8 @@ func login(client http.Client) {
 
 func storePassword(client http.Client) {
 	var login, site, siteUsername, sitePassword string
+	r, err := http.NewRequest("POST", "https://localhost:8081/guardarContraseña", nil)
+	chk(err)
 
 	fmt.Println("Introduce el nombre de usuario: ")
 	fmt.Scanf("%s\n", &login)
@@ -74,9 +77,11 @@ func storePassword(client http.Client) {
 	data.Set("siteUsername", siteUsername)
 	data.Set("sitePassword", sitePassword)
 
-	r, err := client.PostForm("https://localhost:8081/guardarContraseña", data)
+	r.PostForm = data
+	r.Header.Add("Authorization", "bearer "+token)
+	res, err := client.Do(r)
 	chk(err)
-	io.Copy(os.Stdout, r.Body)
+	io.Copy(os.Stdout, res.Body)
 	fmt.Println()
 }
 
