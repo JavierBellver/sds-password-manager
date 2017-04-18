@@ -122,10 +122,6 @@ func response(w io.Writer, ok bool, msg string) {
 	w.Write(rJSON)
 }
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	w.Header().Set("Content-Type", "text/plain")
@@ -167,7 +163,6 @@ func main() {
 
 	httpsMux := http.NewServeMux()
 
-	httpsMux.Handle("/", http.HandlerFunc(homeHandler))
 	httpsMux.Handle("/registro", http.HandlerFunc(registroHandler))
 	httpsMux.Handle("/login", http.HandlerFunc(loginHandler))
 	httpsMux.Handle("/guardarContraseña", http.HandlerFunc(storePasswordHandler))
