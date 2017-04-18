@@ -106,7 +106,8 @@ func validateUser(w http.ResponseWriter, login string, pass string) {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
-	response(w, res, "Resultado")
+	token := generateToken(login)
+	response(w, res, token)
 }
 
 //DeleteFile borra el fichero

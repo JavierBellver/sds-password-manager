@@ -19,6 +19,8 @@ import (
 	"os"
 )
 
+var token string
+
 // función para comprobar errores (ahorra escritura)
 func chk(e error) {
 	if e != nil {
@@ -93,10 +95,6 @@ func registerUser(client http.Client) {
 	io.Copy(os.Stdout, r.Body)
 	fmt.Println()
 }
-
-/***
-CLIENTE
-***/
 
 // gestiona el modo cliente
 func main() {
