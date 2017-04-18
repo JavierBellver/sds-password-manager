@@ -93,6 +93,20 @@ func registerUser(client http.Client) {
 	io.Copy(os.Stdout, r.Body)
 	fmt.Println()
 }
+func recuperarPass(client http.Client) {
+	var site string
+	fmt.Println("Nombre del sitio:")
+	fmt.Scanf("%s\n", &site)
+	data := url.Values{}
+	data.Set("site", site)
+	r, err := client.PostForm("https://localhost:8081/recuperar", data)
+	chk(err)
+	io.Copy(os.Stdout, r.Body)
+	chk(err)
+	io.Copy(os.Stdout, r.Body)
+	fmt.Println()
+
+}
 
 /***
 CLIENTE
@@ -107,19 +121,25 @@ func main() {
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
+	for {
+		fmt.Println("Acciones: ")
+		fmt.Println("1.Login")
+		fmt.Println("2.Registro")
+		fmt.Println("3.Recuperar contraseña")
+		fmt.Scanf("%s\n", &opc)
 
-	fmt.Println("Acciones: ")
-	fmt.Println("1.Login")
-	fmt.Println("2.Registro")
-	fmt.Scanf("%s\n", &opc)
+		switch opc {
+		case "1":
+			if login(*client).OK {
 
-	switch opc {
-	case "1":
-		login(*client)
-	case "2":
-		registerUser(*client)
-	default:
-		fmt.Println(opc)
+			}
+		case "2":
+			registerUser(*client)
+		case "3":
+			recuperarPass(*client)
+		default:
+			fmt.Println(opc)
+		}
 	}
 	/*var text string
 
