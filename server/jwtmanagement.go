@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -24,6 +26,14 @@ func generateToken(username string) string {
 
 func validateToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token, err := jwt.Parse(strings.Split(r.Header.Get("Authorization"), " ")[1], func(token *jwt.Token) (interface{}, error) {
+			return []byte(mySignUpKey), nil
+		})
 
+		if err == nil && token.Valid {
+			next.ServeHTTP(w, r)
+		} else {
+			fmt.Println("Token Error")
+		}
 	})
 }

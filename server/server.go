@@ -165,7 +165,7 @@ func main() {
 
 	httpsMux.Handle("/registro", http.HandlerFunc(registroHandler))
 	httpsMux.Handle("/login", http.HandlerFunc(loginHandler))
-	httpsMux.Handle("/guardarContraseña", http.HandlerFunc(storePasswordHandler))
+	httpsMux.Handle("/guardarContraseña", validateToken(http.HandlerFunc(storePasswordHandler)))
 
 	srv := &http.Server{Addr: ":8081", Handler: httpsMux}
 
