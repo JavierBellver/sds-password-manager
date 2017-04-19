@@ -45,9 +45,6 @@ func checkHashedPassword(psw string, candidatePswd string, salt string) bool {
 	return result
 }
 
-// See alternate IV creation from ciphertext below
-//var iv = []byte{35, 46, 57, 24, 85, 35, 24, 74, 87, 35, 88, 98, 66, 32, 14, 05}
-
 // encrypt string to base64 crypto using AES
 func encrypt(key []byte, text string) string {
 	// key := []byte(keyText)
@@ -69,11 +66,10 @@ func encrypt(key []byte, text string) string {
 	stream := cipher.NewCFBEncrypter(block, iv)
 	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
 
-	// convert to base64
 	return base64.URLEncoding.EncodeToString(ciphertext)
 }
 
-// decrypt from base64 to decrypted string
+//Decrypt AES from base64 string
 func decrypt(key []byte, cryptoText string) string {
 	ciphertext, err := base64.URLEncoding.DecodeString(cryptoText)
 	chk(err)
@@ -87,7 +83,6 @@ func decrypt(key []byte, cryptoText string) string {
 
 	stream := cipher.NewCFBDecrypter(block, iv)
 
-	// XORKeyStream can work in-place if the two arguments are the same.
 	stream.XORKeyStream(ciphertext, ciphertext)
 
 	return fmt.Sprintf("%s", ciphertext)

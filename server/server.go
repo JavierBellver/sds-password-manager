@@ -35,6 +35,7 @@ type responseBody struct {
 
 var path = "./users.txt"
 var storagePath = "./storage.txt"
+var key = generateRandomBytes(32)
 
 func createUsersFile() {
 	var _, err = os.Stat(path)
@@ -74,7 +75,6 @@ func writeUser(login string, pswHash string, salt string) {
 }
 
 func writeSiteData(data siteData) {
-	key := []byte("example key 1234")
 	var file, err = os.OpenFile(storagePath, os.O_RDWR|os.O_APPEND, 0660)
 	chk(err)
 	defer file.Close()
@@ -171,7 +171,6 @@ func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
-	key := []byte("example key 1234")
 	r.ParseForm()
 	w.Header().Set("Content-Type", "text/plain")
 
