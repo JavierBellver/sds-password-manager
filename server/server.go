@@ -55,14 +55,16 @@ func createStorageFile() {
 	}
 }
 
-func writeUser(login string, password string) {
+func writeUser(login string, pswHash string, salt string) {
 	var file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND, 0660)
 	chk(err)
 	defer file.Close()
 
 	_, err = file.WriteString("[login:" + login + "|")
 	chk(err)
-	_, err = file.WriteString("password:" + password + "]\n")
+	_, err = file.WriteString("password:" + pswHash + "|")
+	chk(err)
+	_, err = file.WriteString("salt:" + salt + "]\n")
 	chk(err)
 
 	err = file.Sync()
@@ -87,27 +89,28 @@ func writeSiteData(data siteData) {
 	chk(err)
 }
 
-func validateUser(w http.ResponseWriter, login string, pass string) {
+func validateUser(w http.ResponseWriter, login string, pswd string) {
 	file, err := os.Open("users.txt")
-	var res bool
-	res = false
-	s := "[login:" + login + "|password:" + pass + "]"
-	if err != nil {
-		log.Fatal(err)
-	}
+	chk(err)
+	var res = false
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		if s == scanner.Text() {
-			res = true
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() && !res {
+		result := strings.Split(scanner.Text(), "|")
+		if len(result) > 0 {
+			login := strings.Split(result[0], ":")
+			pswdHashed := strings.Split(result[1], ":")
+			salt := strings.Split(result[2], ":")[1]
+			salt = strings.TrimSuffix(salt, "]")
+			if checkHashedPassword(pswdHashed[1], pswd, salt) {
+				res = true
+				token := generateToken(login[1])
+				response(w, res, token)
+			}
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-	token := generateToken(login)
-	response(w, res, token)
 }
 
 //DeleteFile borra el fichero
@@ -135,8 +138,9 @@ func registroHandler(w http.ResponseWriter, r *http.Request) {
 
 	login := r.Form.Get("login")
 	password := r.Form.Get("password")
+	hashed, salt := hashPassword(password)
 
-	writeUser(login, password)
+	writeUser(login, hashed, salt)
 	response(w, true, "UsuarioRegistrado")
 }
 
@@ -165,7 +169,8 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		result := strings.Split(scanner.Text(), "|")
-		if len(result) > 0 {
+		log.Println(len(result))
+		if len(result) > 1 {
 			user := strings.Split(result[0], ":")
 			site := strings.Split(result[1], ":")
 			//login := strings.Split(result[2], ":")
