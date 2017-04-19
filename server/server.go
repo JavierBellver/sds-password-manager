@@ -149,7 +149,6 @@ func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	sitePassword := r.Form.Get("sitePassword")
 
 	data := siteData{Login: login, Site: site, SiteUsername: siteUsername, SitePassword: sitePassword}
-	log.Println(r.Form)
 	writeSiteData(data)
 	response(w, true, "Información guardada")
 }

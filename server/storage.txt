@@ -1,1 +1,3 @@
 [login:hi|site:ha.com|siteUsername:hi|sitePassword:ha]
+[login:hi|site:ha.com|siteUsername:hi|sitePassword:ha]
+[login:hello|site:kitty.com|siteUsername:hi|sitePassword:kity]

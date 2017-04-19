@@ -9,7 +9,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-var mySignUpKey = []byte("secret")
+var mySignUpKey = generateRandomBytes(32)
 
 func generateToken(username string) string {
 	token := jwt.New(jwt.SigningMethodHS256)
