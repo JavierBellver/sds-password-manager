@@ -235,6 +235,7 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	for scanner.Scan() {
 		result := strings.Split(scanner.Text(), "|")
 		if len(result) > 1 {
+			id := strings.Split(result[0], ":")[1]
 			user := strings.Split(result[1], ":")
 			site := strings.Split(result[2], ":")
 			log := strings.Split(result[3], ":")
@@ -244,10 +245,9 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 			st := decrypt(key, site[1])
 			usrname := decrypt(key, log[1])
 			stpswd := decrypt(key, pass)
-			fmt.Println(string(user[1]))
 
 			if r.Form.Get("site") == string(st) && r.Form.Get("user") == string(usr) {
-				result := "[login:" + string(usr) + "|" + "site:" + string(st) + "|" + "siteUsername:" + string(usrname) + "|" + "sitePassword:" + string(stpswd) + "]"
+				result := "[id:" + string(id) + "|" + "login:" + string(usr) + "|" + "site:" + string(st) + "|" + "siteUsername:" + string(usrname) + "|" + "sitePassword:" + string(stpswd) + "]"
 				response(w, true, string(result))
 			}
 		}
