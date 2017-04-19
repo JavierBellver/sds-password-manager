@@ -15,7 +15,8 @@ import (
 
 func chk(e error) {
 	if e != nil {
-		panic(e)
+		log.Println(e.Error())
+		bufio.NewReader(os.Stdin).ReadBytes('\n')
 	}
 }
 
@@ -87,7 +88,7 @@ func writeSiteData(data siteData) {
 }
 
 func validateUser(w http.ResponseWriter, login string, pass string) {
-	file, err := os.Open("d:/gocode/src/sds-password-manager/server/users.txt")
+	file, err := os.Open("users.txt")
 	var res bool
 	res = false
 	s := "[login:" + login + "|password:" + pass + "]"
@@ -153,22 +154,25 @@ func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	writeSiteData(data)
 	response(w, true, "Información guardada")
 }
+
 func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	w.Header().Set("Content-Type", "text/plain")
 
-	inFile, _ := os.Open("d:/gocode/src/sds-password-manager/server/storage.txt")
+	inFile, _ := os.Open("storage.txt")
 	defer inFile.Close()
 	scanner := bufio.NewScanner(inFile)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		result := strings.Split(scanner.Text(), "|")
-		user := strings.Split(result[0], ":")
-		site := strings.Split(result[1], ":")
-		//login := strings.Split(result[2], ":")
-		//password := strings.Split(result[3], ":")
-		if r.Form.Get("site") == site[1] && r.Form.Get("user") == user[1] {
-			response(w, true, scanner.Text())
+		if len(result) > 0 {
+			user := strings.Split(result[0], ":")
+			site := strings.Split(result[1], ":")
+			//login := strings.Split(result[2], ":")
+			//password := strings.Split(result[3], ":")
+			if r.Form.Get("site") == site[1] && r.Form.Get("user") == user[1] {
+				response(w, true, scanner.Text())
+			}
 		}
 	}
 }
@@ -185,7 +189,7 @@ func main() {
 	httpsMux.Handle("/registro", http.HandlerFunc(registroHandler))
 	httpsMux.Handle("/login", http.HandlerFunc(loginHandler))
 	httpsMux.Handle("/guardarContraseña", validateToken(http.HandlerFunc(storePasswordHandler)))
-	httpsMux.Handle("/recuperar", http.HandlerFunc(getPasswordHandler))
+	httpsMux.Handle("/recuperarContraseña", validateToken(http.HandlerFunc(getPasswordHandler)))
 
 	srv := &http.Server{Addr: ":8081", Handler: httpsMux}
 

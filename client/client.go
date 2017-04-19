@@ -10,6 +10,7 @@ Conceptos: JSON, TLS
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
@@ -29,7 +30,8 @@ var usuario string
 // función para comprobar errores (ahorra escritura)
 func chk(e error) {
 	if e != nil {
-		panic(e)
+		log.Println(e.Error())
+		bufio.NewReader(os.Stdin).ReadBytes('\n')
 	}
 }
 
@@ -65,16 +67,17 @@ func login(client http.Client) {
 	chk(err)
 	if res.Ok == true {
 		token = res.Msg
-    usuario = login
+		usuario = login
+		fmt.Println("Exito, bienvenido " + usuario)
+	} else {
+		fmt.Println("Error, usuario no existente")
 	}
-  fmt.Println()
+	fmt.Println()
 }
 
 func storePassword(client http.Client) {
-	var login, site, siteUsername, sitePassword string
+	var site, siteUsername, sitePassword string
 
-	fmt.Println("Introduce el nombre de usuario: ")
-	fmt.Scanf("%s\n", &login)
 	fmt.Println("Introduce el nombre del sitio web: ")
 	fmt.Scanf("%s\n", &site)
 	fmt.Println("Introduce tu nombre de usuario del sitio web: ")
@@ -82,11 +85,10 @@ func storePassword(client http.Client) {
 	fmt.Println("Introduce la contraseña en el sitio web: ")
 	fmt.Scanf("%s\n", &sitePassword)
 	data := url.Values{}
-	data.Set("login", login)
+	data.Set("login", usuario)
 	data.Add("site", site)
 	data.Add("siteUsername", siteUsername)
 	data.Add("sitePassword", sitePassword)
-	log.Println(data)
 	r, err := http.NewRequest("POST", "https://localhost:8081/guardarContraseña", bytes.NewBufferString(data.Encode()))
 	chk(err)
 	r.Header.Add("Authorization", "bearer "+token)
@@ -121,11 +123,15 @@ func recuperarPass(client http.Client, user string) {
 	data := url.Values{}
 	data.Set("site", site)
 	data.Set("user", user)
-	r, err := client.PostForm("https://localhost:8081/recuperar", data)
+	r, err := http.NewRequest("POST", "https://localhost:8081/recuperarContraseña", bytes.NewBufferString(data.Encode()))
 	chk(err)
-	io.Copy(os.Stdout, r.Body)
+	r.Header.Add("Authorization", "bearer "+token)
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+	res, err := client.Do(r)
+	chk(err)
+	io.Copy(os.Stdout, res.Body)
 	fmt.Println()
-
 }
 
 func main() {
@@ -150,8 +156,8 @@ func main() {
 				registerUser(*client)
 			case "3":
 				storePassword(*client)
-      case "4":
-        recuperarPass(*client, usuario)
+			case "4":
+				recuperarPass(*client, usuario)
 			default:
 				fmt.Println(opc)
 			}
