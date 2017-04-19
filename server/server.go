@@ -89,27 +89,28 @@ func writeSiteData(data siteData) {
 	chk(err)
 }
 
-func validateUser(w http.ResponseWriter, login string, pass string) {
+func validateUser(w http.ResponseWriter, login string, pswd string) {
 	file, err := os.Open("users.txt")
-	var res bool
-	res = false
-	s := "[login:" + login + "|password:" + pass + "]"
-	if err != nil {
-		log.Fatal(err)
-	}
+	chk(err)
+	var res = false
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		if s == scanner.Text() {
-			res = true
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() && !res {
+		result := strings.Split(scanner.Text(), "|")
+		if len(result) > 0 {
+			login := strings.Split(result[0], ":")
+			pswdHashed := strings.Split(result[1], ":")
+			salt := strings.Split(result[2], ":")[1]
+			salt = strings.TrimSuffix(salt, "]")
+			if checkHashedPassword(pswdHashed[1], pswd, salt) {
+				res = true
+				token := generateToken(login[1])
+				response(w, res, token)
+			}
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-	token := generateToken(login)
-	response(w, res, token)
 }
 
 //DeleteFile borra el fichero
