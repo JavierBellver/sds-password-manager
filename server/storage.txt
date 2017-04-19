@@ -1,5 +1,2 @@
-[login:hi|site:ha.com|siteUsername:hi|sitePassword:ha]
-[login:hi|site:ha.com|siteUsername:hi|sitePassword:ha]
-[login:hello|site:kitty.com|siteUsername:hi|sitePassword:kity]
-[login:hi|site:ha.com|siteUsername:hi|sitePassword:ha]
-[login:miyoshi|site:k.com|siteUsername:m|sitePassword:s]
+
+[login:hello|site:kitty.com|siteUsername:hi|sitePassword:he]

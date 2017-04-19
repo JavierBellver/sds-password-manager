@@ -10,6 +10,7 @@ Conceptos: JSON, TLS
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
@@ -29,7 +30,8 @@ var usuario string
 // función para comprobar errores (ahorra escritura)
 func chk(e error) {
 	if e != nil {
-		panic(e)
+		log.Println(e.Error())
+		bufio.NewReader(os.Stdin).ReadBytes('\n')
 	}
 }
 
@@ -65,9 +67,9 @@ func login(client http.Client) {
 	chk(err)
 	if res.Ok == true {
 		token = res.Msg
-    usuario = login
+		usuario = login
 	}
-  fmt.Println()
+	fmt.Println()
 }
 
 func storePassword(client http.Client) {
@@ -150,8 +152,8 @@ func main() {
 				registerUser(*client)
 			case "3":
 				storePassword(*client)
-      case "4":
-        recuperarPass(*client, usuario)
+			case "4":
+				recuperarPass(*client, usuario)
 			default:
 				fmt.Println(opc)
 			}

@@ -15,7 +15,8 @@ import (
 
 func chk(e error) {
 	if e != nil {
-		panic(e)
+		log.Println(e.Error())
+		bufio.NewReader(os.Stdin).ReadBytes('\n')
 	}
 }
 
@@ -87,7 +88,7 @@ func writeSiteData(data siteData) {
 }
 
 func validateUser(w http.ResponseWriter, login string, pass string) {
-	file, err := os.Open("d:/gocode/src/sds-password-manager/server/users.txt")
+	file, err := os.Open("users.txt")
 	var res bool
 	res = false
 	s := "[login:" + login + "|password:" + pass + "]"

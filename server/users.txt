@@ -1,1 +1,2 @@
-
+[login:hello|password:john]
+[login:hello|password:kitty]
