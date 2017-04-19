@@ -19,6 +19,8 @@ import (
 	"os"
 )
 
+//Función de encriptado
+
 // función para comprobar errores (ahorra escritura)
 func chk(e error) {
 	if e != nil {
@@ -132,6 +134,7 @@ func main() {
 		fmt.Println("1.Login")
 		fmt.Println("2.Registro")
 		fmt.Println("3.Recuperar contraseña")
+		fmt.Println("4.Almacenar Contraseña")
 		fmt.Scanf("%s\n", &opc)
 
 		switch opc {
@@ -149,6 +152,8 @@ func main() {
 			registerUser(*client)
 		case "3":
 			recuperarPass(*client, usuario)
+		case "4":
+			storePassword(*client)
 		default:
 			fmt.Println(opc)
 		}

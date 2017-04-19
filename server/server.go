@@ -3,6 +3,10 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -55,6 +59,54 @@ func createStorageFile() {
 	}
 }
 
+// See alternate IV creation from ciphertext below
+//var iv = []byte{35, 46, 57, 24, 85, 35, 24, 74, 87, 35, 88, 98, 66, 32, 14, 05}
+
+// encrypt string to base64 crypto using AES
+func encrypt(key []byte, text string) string {
+	// key := []byte(keyText)
+	plaintext := []byte(text)
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+
+	// The IV needs to be unique, but not secure. Therefore it's common to
+	// include it at the beginning of the ciphertext.
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		panic(err)
+	}
+
+	stream := cipher.NewCFBEncrypter(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+
+	// convert to base64
+	return base64.URLEncoding.EncodeToString(ciphertext)
+}
+
+// decrypt from base64 to decrypted string
+func decrypt(key []byte, cryptoText string) string {
+	ciphertext, err := base64.URLEncoding.DecodeString(cryptoText)
+	chk(err)
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+	iv := ciphertext[:aes.BlockSize]
+	ciphertext = ciphertext[aes.BlockSize:]
+
+	stream := cipher.NewCFBDecrypter(block, iv)
+
+	// XORKeyStream can work in-place if the two arguments are the same.
+	stream.XORKeyStream(ciphertext, ciphertext)
+
+	return fmt.Sprintf("%s", ciphertext)
+}
+
 func writeUser(login string, password string) {
 	var file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND, 0660)
 	chk(err)
@@ -70,17 +122,22 @@ func writeUser(login string, password string) {
 }
 
 func writeSiteData(data siteData) {
+	key := []byte("example key 1234")
 	var file, err = os.OpenFile(storagePath, os.O_RDWR|os.O_APPEND, 0660)
 	chk(err)
 	defer file.Close()
+	usr := encrypt(key, data.Login)
+	st := encrypt(key, data.Site)
+	usrname := encrypt(key, data.SiteUsername)
+	stpswd := encrypt(key, data.SitePassword)
 
-	_, err = file.WriteString("[login:" + data.Login + "|")
+	_, err = file.WriteString("[login:" + usr + "|")
 	chk(err)
-	_, err = file.WriteString("site:" + data.Site + "|")
+	_, err = file.WriteString("site:" + st + "|")
 	chk(err)
-	_, err = file.WriteString("siteUsername:" + data.SiteUsername + "|")
+	_, err = file.WriteString("siteUsername:" + usrname + "|")
 	chk(err)
-	_, err = file.WriteString("sitePassword:" + data.SitePassword + "]\n")
+	_, err = file.WriteString("sitePassword:" + stpswd + "]\n")
 	chk(err)
 
 	err = file.Sync()
@@ -99,7 +156,6 @@ func validateUser(w http.ResponseWriter, login string, pass string) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		fmt.Println(scanner.Text())
 		if s == scanner.Text() {
 			res = true
 		}
@@ -159,10 +215,11 @@ func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	response(w, true, "Información guardada")
 }
 func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	key := []byte("example key 1234")
 	r.ParseForm()
 	w.Header().Set("Content-Type", "text/plain")
 
-	inFile, _ := os.Open("d:/gocode/src/sds-password-manager/server/storage.txt")
+	inFile, _ := os.Open("storage.txt")
 	defer inFile.Close()
 	scanner := bufio.NewScanner(inFile)
 	scanner.Split(bufio.ScanLines)
@@ -170,10 +227,18 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 		result := strings.Split(scanner.Text(), "|")
 		user := strings.Split(result[0], ":")
 		site := strings.Split(result[1], ":")
-		//login := strings.Split(result[2], ":")
-		//password := strings.Split(result[3], ":")
-		if r.Form.Get("site") == site[1] && r.Form.Get("user") == user[1] {
-			response(w, true, scanner.Text())
+		log := strings.Split(result[2], ":")
+		pass := strings.Split(result[3], ":")[1]
+		pass = strings.TrimSuffix(pass, "]")
+		usr := decrypt(key, user[1])
+		st := decrypt(key, site[1])
+		usrname := decrypt(key, log[1])
+		stpswd := decrypt(key, pass)
+		fmt.Println(string(user[1]))
+
+		if r.Form.Get("site") == string(st) && r.Form.Get("user") == string(usr) {
+			result := "[login:" + string(usr) + "|" + "site:" + string(st) + "|" + "siteUsername:" + string(usrname) + "|" + "sitePassword:" + string(stpswd) + "]"
+			response(w, true, string(result))
 		}
 	}
 }

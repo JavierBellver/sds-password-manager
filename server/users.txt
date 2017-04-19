@@ -1,7 +1,1 @@
 [login:hello|password:you]
-[login:yoyo|password:mother]
-[login:another|password:one]
-[login:|password:prueba]
-[login:|password:]
-[login:|password:]
-[login:paci|password:pico]
