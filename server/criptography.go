@@ -18,3 +18,8 @@ func generateRandomString(l int) string {
 	s := base64.URLEncoding.EncodeToString(b)
 	return s
 }
+
+func hashPassword(psw string) (string, string) {
+	salt := "salt"
+	return "hashedpass", salt
+}
