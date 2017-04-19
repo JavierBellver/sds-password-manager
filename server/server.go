@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -98,7 +97,6 @@ func validateUser(w http.ResponseWriter, login string, pass string) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		fmt.Println(s)
 		if s == scanner.Text() {
 			res = true
 		}

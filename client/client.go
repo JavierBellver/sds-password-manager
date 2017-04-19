@@ -107,27 +107,46 @@ func registerUser(client http.Client) {
 	fmt.Println()
 }
 
+func getOption(client http.Client) {
+	var opc string
+	fmt.Println("Acciones: ")
+	fmt.Println("1.Login")
+	fmt.Println("2.Registro")
+	if token != "" {
+		fmt.Println("3-Guardar contraseña")
+		fmt.Println("4-Recuperar contraseña")
+		fmt.Scanln(&opc)
+		switch opc {
+		case "1":
+			login(client)
+		case "2":
+			registerUser(client)
+		case "3":
+			storePassword(client)
+		default:
+			fmt.Println(opc)
+		}
+	} else {
+		fmt.Scanln(&opc)
+		switch opc {
+		case "1":
+			login(client)
+		case "2":
+			registerUser(client)
+		default:
+			fmt.Println(opc)
+		}
+	}
+}
+
 // gestiona el modo cliente
 func main() {
-
-	var opc string
-
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
 
-	fmt.Println("Acciones: ")
-	fmt.Println("1.Login")
-	fmt.Println("2.Registro")
-	fmt.Scanf("%s\n", &opc)
-
-	switch opc {
-	case "1":
-		login(*client)
-	case "2":
-		registerUser(*client)
-	default:
-		fmt.Println(opc)
+	for {
+		getOption(*client)
 	}
 }

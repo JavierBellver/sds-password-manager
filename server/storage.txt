@@ -1,2 +1,3 @@
-[login:usuario|site:facebook.com|siteUsername:pepito|sitePassword:passwordpito]
-[login:hello|site:foodie.com|siteUsername:food|sitePassword:eater]
+[login:|site:|siteUsername:|sitePassword:]
+[login:|site:|siteUsername:|sitePassword:]
+[login:|site:|siteUsername:|sitePassword:]
