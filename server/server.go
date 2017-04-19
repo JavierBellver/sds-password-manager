@@ -154,11 +154,12 @@ func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	writeSiteData(data)
 	response(w, true, "Información guardada")
 }
+
 func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	w.Header().Set("Content-Type", "text/plain")
 
-	inFile, _ := os.Open("d:/gocode/src/sds-password-manager/server/storage.txt")
+	inFile, _ := os.Open("storage.txt")
 	defer inFile.Close()
 	scanner := bufio.NewScanner(inFile)
 	scanner.Split(bufio.ScanLines)

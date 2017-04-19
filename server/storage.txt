@@ -1,2 +1,2 @@
-
-[login:hello|site:kitty.com|siteUsername:hi|sitePassword:he]
+[login:hi|site:ha.com|siteUsername:hi|sitePassword:ha]
+[login:hi|site:lolailo.com|siteUsername:lol|sitePassword:lal]

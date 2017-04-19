@@ -127,7 +127,6 @@ func recuperarPass(client http.Client, user string) {
 	chk(err)
 	io.Copy(os.Stdout, r.Body)
 	fmt.Println()
-
 }
 
 func main() {
