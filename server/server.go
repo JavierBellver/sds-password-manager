@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 )
 
@@ -87,7 +88,7 @@ func writeSiteData(data siteData) {
 }
 
 func validateUser(w http.ResponseWriter, login string, pass string) {
-	file, err := os.Open(path)
+	file, err := os.Open("d:/gocode/src/sds-password-manager/server/users.txt")
 	var res bool
 	res = false
 	s := "[login:" + login + "|password:" + pass + "]"
@@ -98,7 +99,7 @@ func validateUser(w http.ResponseWriter, login string, pass string) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		fmt.Println(s)
+		fmt.Println(scanner.Text())
 		if s == scanner.Text() {
 			res = true
 		}
@@ -157,6 +158,25 @@ func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	writeSiteData(data)
 	response(w, true, "Información guardada")
 }
+func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	w.Header().Set("Content-Type", "text/plain")
+
+	inFile, _ := os.Open("d:/gocode/src/sds-password-manager/server/storage.txt")
+	defer inFile.Close()
+	scanner := bufio.NewScanner(inFile)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() {
+		result := strings.Split(scanner.Text(), "|")
+		user := strings.Split(result[0], ":")
+		site := strings.Split(result[1], ":")
+		//login := strings.Split(result[2], ":")
+		//password := strings.Split(result[3], ":")
+		if r.Form.Get("site") == site[1] && r.Form.Get("user") == user[1] {
+			response(w, true, scanner.Text())
+		}
+	}
+}
 
 func main() {
 	stopChan := make(chan os.Signal)
@@ -171,6 +191,7 @@ func main() {
 	httpsMux.Handle("/registro", http.HandlerFunc(registroHandler))
 	httpsMux.Handle("/login", http.HandlerFunc(loginHandler))
 	httpsMux.Handle("/guardarContraseña", http.HandlerFunc(storePasswordHandler))
+	httpsMux.Handle("/recuperar", http.HandlerFunc(getPasswordHandler))
 
 	srv := &http.Server{Addr: ":8081", Handler: httpsMux}
 

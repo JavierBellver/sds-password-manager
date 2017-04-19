@@ -32,27 +32,33 @@ type resp struct {
 	Msg string // mensaje adicional
 }
 
-// función para escribir una respuesta del servidor
-func response(w io.Writer, ok bool, msg string) {
-	r := resp{Ok: ok, Msg: msg}    // formateamos respuesta
-	rJSON, err := json.Marshal(&r) // codificamos en JSON
-	chk(err)                       // comprobamos error
-	w.Write(rJSON)                 // escribimos el JSON resultante
+func parseResponse(body []byte) (*resp, error) {
+	var r = new(resp)
+	err := json.Unmarshal(body, &r)
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+	return r, err
 }
 
-func login(client http.Client) {
-	var login, password string
-	fmt.Println("Introduce el usuario: ")
-	fmt.Scanf("%s\n", &login)
-	fmt.Println("Introduce el password: ")
-	fmt.Scanf("%s", &password)
+func login(client http.Client, login string, password string) bool {
+
 	data := url.Values{}
 	data.Set("login", login)
 	data.Set("password", password)
 	r, err := client.PostForm("https://localhost:8081/login", data)
-	chk(err)
+	decoder := json.NewDecoder(r.Body)
+	var rsp resp
+	err = decoder.Decode(&rsp)
+	if err != nil {
+		panic(err)
+	}
+	defer r.Body.Close()
+	/*chk(err)
 	io.Copy(os.Stdout, r.Body)
-	fmt.Println()
+	body, err := ioutil.ReadAll(r.Body)
+	fmt.Println(body)*/
+	return rsp.Ok
 }
 
 func storePassword(client http.Client) {
@@ -94,6 +100,20 @@ func registerUser(client http.Client) {
 	fmt.Println()
 }
 
+func recuperarPass(client http.Client, user string) {
+	var site string
+	fmt.Println("Nombre del sitio:")
+	fmt.Scanf("%s\n", &site)
+	data := url.Values{}
+	data.Set("site", site)
+	data.Set("user", user)
+	r, err := client.PostForm("https://localhost:8081/recuperar", data)
+	chk(err)
+	io.Copy(os.Stdout, r.Body)
+	fmt.Println()
+
+}
+
 /***
 CLIENTE
 ***/
@@ -102,24 +122,36 @@ CLIENTE
 func main() {
 
 	var opc string
-
+	var usuario string
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
+	for {
+		fmt.Println("Acciones: ")
+		fmt.Println("1.Login")
+		fmt.Println("2.Registro")
+		fmt.Println("3.Recuperar contraseña")
+		fmt.Scanf("%s\n", &opc)
 
-	fmt.Println("Acciones: ")
-	fmt.Println("1.Login")
-	fmt.Println("2.Registro")
-	fmt.Scanf("%s\n", &opc)
-
-	switch opc {
-	case "1":
-		login(*client)
-	case "2":
-		registerUser(*client)
-	default:
-		fmt.Println(opc)
+		switch opc {
+		case "1":
+			var user, password string
+			fmt.Println("Introduce el usuario: ")
+			fmt.Scanf("%s", &user)
+			fmt.Println("Introduce el password: ")
+			fmt.Scanf("%s", &password)
+			if login(*client, user, password) {
+				usuario = user
+				println(usuario)
+			}
+		case "2":
+			registerUser(*client)
+		case "3":
+			recuperarPass(*client, usuario)
+		default:
+			fmt.Println(opc)
+		}
 	}
 	/*var text string
 
