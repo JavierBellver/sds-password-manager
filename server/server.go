@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -158,7 +159,7 @@ func validateUser(w http.ResponseWriter, login string, pswd string) {
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() && !res {
 		result := strings.Split(scanner.Text(), "|")
-		if len(result) > 0 {
+		if len(result) > 1 {
 			login := strings.Split(result[0], ":")
 			pswdHashed := strings.Split(result[1], ":")
 			salt := strings.Split(result[2], ":")[1]
@@ -229,22 +230,22 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		result := strings.Split(scanner.Text(), "|")
-if len(result) > 1 {
-		user := strings.Split(result[0], ":")
-		site := strings.Split(result[1], ":")
-		log := strings.Split(result[2], ":")
-		pass := strings.Split(result[3], ":")[1]
-		pass = strings.TrimSuffix(pass, "]")
-		usr := decrypt(key, user[1])
-		st := decrypt(key, site[1])
-		usrname := decrypt(key, log[1])
-		stpswd := decrypt(key, pass)
-		fmt.Println(string(user[1]))
+		if len(result) > 1 {
+			user := strings.Split(result[0], ":")
+			site := strings.Split(result[1], ":")
+			log := strings.Split(result[2], ":")
+			pass := strings.Split(result[3], ":")[1]
+			pass = strings.TrimSuffix(pass, "]")
+			usr := decrypt(key, user[1])
+			st := decrypt(key, site[1])
+			usrname := decrypt(key, log[1])
+			stpswd := decrypt(key, pass)
+			fmt.Println(string(user[1]))
 
-		if r.Form.Get("site") == string(st) && r.Form.Get("user") == string(usr) {
-			result := "[login:" + string(usr) + "|" + "site:" + string(st) + "|" + "siteUsername:" + string(usrname) + "|" + "sitePassword:" + string(stpswd) + "]"
-			response(w, true, string(result))
-      }
+			if r.Form.Get("site") == string(st) && r.Form.Get("user") == string(usr) {
+				result := "[login:" + string(usr) + "|" + "site:" + string(st) + "|" + "siteUsername:" + string(usrname) + "|" + "sitePassword:" + string(stpswd) + "]"
+				response(w, true, string(result))
+			}
 		}
 	}
 }
