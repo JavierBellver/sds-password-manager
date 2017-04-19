@@ -1,4 +1,1 @@
 
-[login:hello|site:has.com|siteUsername:hook|sitePassword:kak]
-[login:dork|site:dokly.com|siteUsername:dork|sitePassword:kadonk]
-[login:dork|site:has.com|siteUsername:doky|sitePassword:koku]

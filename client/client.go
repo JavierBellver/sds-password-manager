@@ -24,6 +24,7 @@ import (
 	"strconv"
 )
 
+
 var token string
 var usuario string
 
@@ -145,6 +146,7 @@ func main() {
 		fmt.Println("Acciones: ")
 		fmt.Println("1.Login")
 		fmt.Println("2.Registro")
+
 		if token != "" {
 			fmt.Println("3-Guardar contraseña")
 			fmt.Println("4-Recuperar contraseña")
