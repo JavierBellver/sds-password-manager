@@ -169,7 +169,6 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		result := strings.Split(scanner.Text(), "|")
-		log.Println(len(result))
 		if len(result) > 1 {
 			user := strings.Split(result[0], ":")
 			site := strings.Split(result[1], ":")
