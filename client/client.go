@@ -68,15 +68,16 @@ func login(client http.Client) {
 	if res.Ok == true {
 		token = res.Msg
 		usuario = login
+		fmt.Println("Exito, bienvenido " + usuario)
+	} else {
+		fmt.Println("Error, usuario no existente")
 	}
 	fmt.Println()
 }
 
 func storePassword(client http.Client) {
-	var login, site, siteUsername, sitePassword string
+	var site, siteUsername, sitePassword string
 
-	fmt.Println("Introduce el nombre de usuario: ")
-	fmt.Scanf("%s\n", &login)
 	fmt.Println("Introduce el nombre del sitio web: ")
 	fmt.Scanf("%s\n", &site)
 	fmt.Println("Introduce tu nombre de usuario del sitio web: ")
@@ -84,11 +85,10 @@ func storePassword(client http.Client) {
 	fmt.Println("Introduce la contraseña en el sitio web: ")
 	fmt.Scanf("%s\n", &sitePassword)
 	data := url.Values{}
-	data.Set("login", login)
+	data.Set("login", usuario)
 	data.Add("site", site)
 	data.Add("siteUsername", siteUsername)
 	data.Add("sitePassword", sitePassword)
-	log.Println(data)
 	r, err := http.NewRequest("POST", "https://localhost:8081/guardarContraseña", bytes.NewBufferString(data.Encode()))
 	chk(err)
 	r.Header.Add("Authorization", "bearer "+token)
