@@ -1,2 +1,5 @@
-[login:usuario|site:facebook.com|siteUsername:pepito|sitePassword:passwordpito]
-[login:hello|site:foodie.com|siteUsername:food|sitePassword:eater]
+[login:hi|site:ha.com|siteUsername:hi|sitePassword:ha]
+[login:hi|site:ha.com|siteUsername:hi|sitePassword:ha]
+[login:hello|site:kitty.com|siteUsername:hi|sitePassword:kity]
+[login:hi|site:ha.com|siteUsername:hi|sitePassword:ha]
+[login:miyoshi|site:k.com|siteUsername:m|sitePassword:s]

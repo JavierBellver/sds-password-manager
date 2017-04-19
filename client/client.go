@@ -10,14 +10,21 @@ Conceptos: JSON, TLS
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 )
+
+var token string
+var usuario string
 
 // función para comprobar errores (ahorra escritura)
 func chk(e error) {
@@ -41,24 +48,26 @@ func parseResponse(body []byte) (*resp, error) {
 	return r, err
 }
 
-func login(client http.Client, login string, password string) bool {
-
+func login(client http.Client) {
+	var login, password string
+	fmt.Println("Introduce el usuario: ")
+	fmt.Scanf("%s\n", &login)
+	fmt.Println("Introduce el password: ")
+	fmt.Scanf("%s\n", &password)
 	data := url.Values{}
 	data.Set("login", login)
 	data.Set("password", password)
 	r, err := client.PostForm("https://localhost:8081/login", data)
-	decoder := json.NewDecoder(r.Body)
-	var rsp resp
-	err = decoder.Decode(&rsp)
-	if err != nil {
-		panic(err)
-	}
-	defer r.Body.Close()
-	/*chk(err)
-	io.Copy(os.Stdout, r.Body)
+	chk(err)
 	body, err := ioutil.ReadAll(r.Body)
-	fmt.Println(body)*/
-	return rsp.Ok
+	chk(err)
+	res, err := parseResponse([]byte(body))
+	chk(err)
+	if res.Ok == true {
+		token = res.Msg
+    usuario = login
+	}
+  fmt.Println()
 }
 
 func storePassword(client http.Client) {
@@ -74,13 +83,18 @@ func storePassword(client http.Client) {
 	fmt.Scanf("%s\n", &sitePassword)
 	data := url.Values{}
 	data.Set("login", login)
-	data.Set("site", site)
-	data.Set("siteUsername", siteUsername)
-	data.Set("sitePassword", sitePassword)
-
-	r, err := client.PostForm("https://localhost:8081/guardarContraseña", data)
+	data.Add("site", site)
+	data.Add("siteUsername", siteUsername)
+	data.Add("sitePassword", sitePassword)
+	log.Println(data)
+	r, err := http.NewRequest("POST", "https://localhost:8081/guardarContraseña", bytes.NewBufferString(data.Encode()))
 	chk(err)
-	io.Copy(os.Stdout, r.Body)
+	r.Header.Add("Authorization", "bearer "+token)
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+	res, err := client.Do(r)
+	chk(err)
+	io.Copy(os.Stdout, res.Body)
 	fmt.Println()
 }
 
@@ -90,7 +104,7 @@ func registerUser(client http.Client) {
 	fmt.Println("Introduce el usuario: ")
 	fmt.Scanf("%s\n", &login)
 	fmt.Println("Introduce la contraseña: ")
-	fmt.Scanf("%s", &password)
+	fmt.Scanf("%s\n", &password)
 	data := url.Values{}
 	data.Set("login", login)
 	data.Set("password", password)
@@ -114,61 +128,43 @@ func recuperarPass(client http.Client, user string) {
 
 }
 
-/***
-CLIENTE
-***/
-
-// gestiona el modo cliente
 func main() {
-
 	var opc string
-	var usuario string
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
+
 	for {
 		fmt.Println("Acciones: ")
 		fmt.Println("1.Login")
 		fmt.Println("2.Registro")
-		fmt.Println("3.Recuperar contraseña")
-		fmt.Scanf("%s\n", &opc)
-
-		switch opc {
-		case "1":
-			var user, password string
-			fmt.Println("Introduce el usuario: ")
-			fmt.Scanf("%s", &user)
-			fmt.Println("Introduce el password: ")
-			fmt.Scanf("%s", &password)
-			if login(*client, user, password) {
-				usuario = user
-				println(usuario)
+		if token != "" {
+			fmt.Println("3-Guardar contraseña")
+			fmt.Println("4-Recuperar contraseña")
+			fmt.Scanf("%s\n", &opc)
+			switch opc {
+			case "1":
+				login(*client)
+			case "2":
+				registerUser(*client)
+			case "3":
+				storePassword(*client)
+      case "4":
+        recuperarPass(*client, usuario)
+			default:
+				fmt.Println(opc)
 			}
-		case "2":
-			registerUser(*client)
-		case "3":
-			recuperarPass(*client, usuario)
-		default:
-			fmt.Println(opc)
+		} else {
+			fmt.Scanf("%s\n", &opc)
+			switch opc {
+			case "1":
+				login(*client)
+			case "2":
+				registerUser(*client)
+			default:
+				fmt.Println(opc)
+			}
 		}
 	}
-	/*var text string
-
-	fmt.Println("Introduce texto: ")
-	fmt.Scanf("%s", &text)
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
-
-	data := url.Values{}      // estructura para contener los valores
-	data.Set("cmd", "hola")   // comando (string)
-	data.Set("mensaje", text) // usuario (string)
-	fmt.Println(data)
-
-	r, err := client.PostForm("https://localhost:8081", data) // enviamos por POST
-	chk(err)
-	io.Copy(os.Stdout, r.Body) // mostramos el cuerpo de la respuesta (es un reader)
-	fmt.Println()*/
 }

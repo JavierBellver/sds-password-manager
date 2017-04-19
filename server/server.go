@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -99,7 +98,6 @@ func validateUser(w http.ResponseWriter, login string, pass string) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		fmt.Println(scanner.Text())
 		if s == scanner.Text() {
 			res = true
 		}
@@ -107,7 +105,8 @@ func validateUser(w http.ResponseWriter, login string, pass string) {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
-	response(w, res, "Resultado")
+	token := generateToken(login)
+	response(w, res, token)
 }
 
 //DeleteFile borra el fichero
@@ -121,10 +120,6 @@ func response(w io.Writer, ok bool, msg string) {
 	rJSON, err := json.Marshal(&r)
 	chk(err)
 	w.Write(rJSON)
-}
-
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
@@ -145,7 +140,8 @@ func registroHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	e := r.ParseForm()
+	chk(e)
 	w.Header().Set("Content-Type", "text/plain")
 
 	login := r.Form.Get("login")
@@ -154,7 +150,6 @@ func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	sitePassword := r.Form.Get("sitePassword")
 
 	data := siteData{Login: login, Site: site, SiteUsername: siteUsername, SitePassword: sitePassword}
-
 	writeSiteData(data)
 	response(w, true, "Información guardada")
 }
@@ -187,10 +182,9 @@ func main() {
 
 	httpsMux := http.NewServeMux()
 
-	httpsMux.Handle("/", http.HandlerFunc(homeHandler))
 	httpsMux.Handle("/registro", http.HandlerFunc(registroHandler))
 	httpsMux.Handle("/login", http.HandlerFunc(loginHandler))
-	httpsMux.Handle("/guardarContraseña", http.HandlerFunc(storePasswordHandler))
+	httpsMux.Handle("/guardarContraseña", validateToken(http.HandlerFunc(storePasswordHandler)))
 	httpsMux.Handle("/recuperar", http.HandlerFunc(getPasswordHandler))
 
 	srv := &http.Server{Addr: ":8081", Handler: httpsMux}
