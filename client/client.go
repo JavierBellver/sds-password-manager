@@ -24,6 +24,7 @@ import (
 )
 
 var token string
+var usuario string
 
 // función para comprobar errores (ahorra escritura)
 func chk(e error) {
@@ -64,9 +65,9 @@ func login(client http.Client) {
 	chk(err)
 	if res.Ok == true {
 		token = res.Msg
+    usuario = login
 	}
-	io.Copy(os.Stdout, r.Body)
-	fmt.Println()
+  fmt.Println()
 }
 
 func storePassword(client http.Client) {
@@ -113,9 +114,22 @@ func registerUser(client http.Client) {
 	fmt.Println()
 }
 
+func recuperarPass(client http.Client, user string) {
+	var site string
+	fmt.Println("Nombre del sitio:")
+	fmt.Scanf("%s\n", &site)
+	data := url.Values{}
+	data.Set("site", site)
+	data.Set("user", user)
+	r, err := client.PostForm("https://localhost:8081/recuperar", data)
+	chk(err)
+	io.Copy(os.Stdout, r.Body)
+	fmt.Println()
+
+}
+
 func main() {
 	var opc string
-
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -136,6 +150,8 @@ func main() {
 				registerUser(*client)
 			case "3":
 				storePassword(*client)
+      case "4":
+        recuperarPass(*client, usuario)
 			default:
 				fmt.Println(opc)
 			}
