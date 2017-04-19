@@ -10,14 +10,17 @@ Conceptos: JSON, TLS
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 )
 
 var token string
@@ -59,15 +62,15 @@ func login(client http.Client) {
 	chk(err)
 	res, err := parseResponse([]byte(body))
 	chk(err)
-	token = res.Msg
+	if res.Ok == true {
+		token = res.Msg
+	}
 	io.Copy(os.Stdout, r.Body)
 	fmt.Println()
 }
 
 func storePassword(client http.Client) {
 	var login, site, siteUsername, sitePassword string
-	r, err := http.NewRequest("POST", "https://localhost:8081/guardarContraseña", nil)
-	chk(err)
 
 	fmt.Println("Introduce el nombre de usuario: ")
 	fmt.Scanf("%s\n", &login)
@@ -79,12 +82,15 @@ func storePassword(client http.Client) {
 	fmt.Scanf("%s\n", &sitePassword)
 	data := url.Values{}
 	data.Set("login", login)
-	data.Set("site", site)
-	data.Set("siteUsername", siteUsername)
-	data.Set("sitePassword", sitePassword)
-
-	r.PostForm = data
+	data.Add("site", site)
+	data.Add("siteUsername", siteUsername)
+	data.Add("sitePassword", sitePassword)
+	log.Println(data)
+	r, err := http.NewRequest("POST", "https://localhost:8081/guardarContraseña", bytes.NewBufferString(data.Encode()))
+	chk(err)
 	r.Header.Add("Authorization", "bearer "+token)
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	res, err := client.Do(r)
 	chk(err)
 	io.Copy(os.Stdout, res.Body)
@@ -107,7 +113,7 @@ func registerUser(client http.Client) {
 	fmt.Println()
 }
 
-func getOption(client http.Client) {
+func showMenu(client http.Client) {
 	var opc string
 	fmt.Println("Acciones: ")
 	fmt.Println("1.Login")
@@ -137,9 +143,9 @@ func getOption(client http.Client) {
 			fmt.Println(opc)
 		}
 	}
+	fmt.Println()
 }
 
-// gestiona el modo cliente
 func main() {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -147,6 +153,6 @@ func main() {
 	client := &http.Client{Transport: tr}
 
 	for {
-		getOption(*client)
+		showMenu(*client)
 	}
 }

@@ -1,4 +1,1 @@
-[login:lol|password:lol]
-[login:lero|password:lero]
-[login:hello|password:kitty]
-[login:hallo|password:kittie]
+[login:hi|password:ha]

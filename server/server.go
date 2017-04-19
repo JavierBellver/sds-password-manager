@@ -139,7 +139,8 @@ func registroHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	e := r.ParseForm()
+	chk(e)
 	w.Header().Set("Content-Type", "text/plain")
 
 	login := r.Form.Get("login")
@@ -148,7 +149,7 @@ func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	sitePassword := r.Form.Get("sitePassword")
 
 	data := siteData{Login: login, Site: site, SiteUsername: siteUsername, SitePassword: sitePassword}
-
+	log.Println(r.Form)
 	writeSiteData(data)
 	response(w, true, "Información guardada")
 }

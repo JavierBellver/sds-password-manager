@@ -1,3 +1,1 @@
-[login:|site:|siteUsername:|sitePassword:]
-[login:|site:|siteUsername:|sitePassword:]
-[login:|site:|siteUsername:|sitePassword:]
+[login:hi|site:ha.com|siteUsername:hi|sitePassword:ha]
