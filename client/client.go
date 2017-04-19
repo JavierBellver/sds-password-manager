@@ -22,8 +22,10 @@ import (
 	"net/url"
 	"os"
 	"strconv"
-)
+	"syscall"
 
+	"golang.org/x/crypto/ssh/terminal"
+)
 
 var token string
 var usuario string
@@ -56,7 +58,10 @@ func login(client http.Client) {
 	fmt.Println("Introduce el usuario: ")
 	fmt.Scanf("%s\n", &login)
 	fmt.Println("Introduce el password: ")
-	fmt.Scanf("%s\n", &password)
+	//fmt.Scanf("%s\n", &password)
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	chk(err)
+	password = string(bytePassword)
 	data := url.Values{}
 	data.Set("login", login)
 	data.Set("password", password)
@@ -107,7 +112,10 @@ func registerUser(client http.Client) {
 	fmt.Println("Introduce el usuario: ")
 	fmt.Scanf("%s\n", &login)
 	fmt.Println("Introduce la contraseña: ")
-	fmt.Scanf("%s\n", &password)
+	//fmt.Scanf("%s\n", &password)
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	chk(err)
+	password = string(bytePassword)
 	data := url.Values{}
 	data.Set("login", login)
 	data.Set("password", password)
