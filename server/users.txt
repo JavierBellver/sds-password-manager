@@ -1,2 +1,0 @@
-
-[login:hello|password:65y8FYR0PkNADQzNNPEYw9TLKnJ1PKjJKEb6WXpd5NQ=|salt:_0y9haXrp7Cey8k4lDw5yQVzhqzjSg4I4xNX7S6GFJg=]

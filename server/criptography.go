@@ -11,6 +11,8 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
+var key = generateRandomBytes(32)
+
 func generateRandomBytes(n int) []byte {
 	b := make([]byte, n)
 	_, err := rand.Read(b)

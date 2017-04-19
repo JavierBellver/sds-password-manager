@@ -35,7 +35,6 @@ type responseBody struct {
 
 var path = "./users.txt"
 var storagePath = "./storage.txt"
-var key = generateRandomBytes(32)
 
 func createUsersFile() {
 	var _, err = os.Stat(path)
