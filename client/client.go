@@ -89,7 +89,10 @@ func storePassword(client http.Client) {
 	fmt.Println("Introduce tu nombre de usuario del sitio web: ")
 	fmt.Scanf("%s\n", &siteUsername)
 	fmt.Println("Introduce la contraseña en el sitio web: ")
-	fmt.Scanf("%s\n", &sitePassword)
+	//fmt.Scanf("%s\n", &sitePassword)
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	chk(err)
+	sitePassword = string(bytePassword)
 	data := url.Values{}
 	data.Set("login", usuario)
 	data.Add("site", site)
