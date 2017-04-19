@@ -26,6 +26,7 @@ func chk(e error) {
 }
 
 type siteData struct {
+	ID           string
 	Login        string
 	Site         string
 	SiteUsername string
@@ -135,7 +136,9 @@ func writeSiteData(data siteData) {
 	usrname := encrypt(key, data.SiteUsername)
 	stpswd := encrypt(key, data.SitePassword)
 
-	_, err = file.WriteString("[login:" + usr + "|")
+	_, err = file.WriteString("[id:" + data.ID + "|")
+	chk(err)
+	_, err = file.WriteString("login:" + usr + "|")
 	chk(err)
 	_, err = file.WriteString("site:" + st + "|")
 	chk(err)
@@ -209,12 +212,13 @@ func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	chk(e)
 	w.Header().Set("Content-Type", "text/plain")
 
+	id := generateRandomString(12)
 	login := r.Form.Get("login")
 	site := r.Form.Get("site")
 	siteUsername := r.Form.Get("siteUsername")
 	sitePassword := r.Form.Get("sitePassword")
 
-	data := siteData{Login: login, Site: site, SiteUsername: siteUsername, SitePassword: sitePassword}
+	data := siteData{ID: id, Login: login, Site: site, SiteUsername: siteUsername, SitePassword: sitePassword}
 	writeSiteData(data)
 	response(w, true, "Información guardada")
 }
@@ -231,19 +235,19 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	for scanner.Scan() {
 		result := strings.Split(scanner.Text(), "|")
 		if len(result) > 1 {
-			user := strings.Split(result[0], ":")
-			site := strings.Split(result[1], ":")
-			log := strings.Split(result[2], ":")
-			pass := strings.Split(result[3], ":")[1]
+			id := strings.Split(result[0], ":")[1]
+			user := strings.Split(result[1], ":")
+			site := strings.Split(result[2], ":")
+			log := strings.Split(result[3], ":")
+			pass := strings.Split(result[4], ":")[1]
 			pass = strings.TrimSuffix(pass, "]")
 			usr := decrypt(key, user[1])
 			st := decrypt(key, site[1])
 			usrname := decrypt(key, log[1])
 			stpswd := decrypt(key, pass)
-			fmt.Println(string(user[1]))
 
 			if r.Form.Get("site") == string(st) && r.Form.Get("user") == string(usr) {
-				result := "[login:" + string(usr) + "|" + "site:" + string(st) + "|" + "siteUsername:" + string(usrname) + "|" + "sitePassword:" + string(stpswd) + "]"
+				result := "[id:" + string(id) + "|" + "login:" + string(usr) + "|" + "site:" + string(st) + "|" + "siteUsername:" + string(usrname) + "|" + "sitePassword:" + string(stpswd) + "]"
 				response(w, true, string(result))
 			}
 		}
