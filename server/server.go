@@ -55,14 +55,16 @@ func createStorageFile() {
 	}
 }
 
-func writeUser(login string, password string) {
+func writeUser(login string, pswHash string, salt string) {
 	var file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND, 0660)
 	chk(err)
 	defer file.Close()
 
 	_, err = file.WriteString("[login:" + login + "|")
 	chk(err)
-	_, err = file.WriteString("password:" + password + "]\n")
+	_, err = file.WriteString("password:" + pswHash + "|")
+	chk(err)
+	_, err = file.WriteString("salt:" + salt + "]\n")
 	chk(err)
 
 	err = file.Sync()
@@ -135,8 +137,9 @@ func registroHandler(w http.ResponseWriter, r *http.Request) {
 
 	login := r.Form.Get("login")
 	password := r.Form.Get("password")
+	hashed, salt := hashPassword(password)
 
-	writeUser(login, password)
+	writeUser(login, hashed, salt)
 	response(w, true, "UsuarioRegistrado")
 }
 
