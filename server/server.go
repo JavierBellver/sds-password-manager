@@ -8,7 +8,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -20,7 +19,8 @@ import (
 
 func chk(e error) {
 	if e != nil {
-		panic(e)
+		log.Println(e.Error())
+		bufio.NewReader(os.Stdin).ReadBytes('\n')
 	}
 }
 
@@ -107,14 +107,17 @@ func decrypt(key []byte, cryptoText string) string {
 	return fmt.Sprintf("%s", ciphertext)
 }
 
-func writeUser(login string, password string) {
+func writeUser(login string, pswHash string, salt string) {
+
 	var file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND, 0660)
 	chk(err)
 	defer file.Close()
 
 	_, err = file.WriteString("[login:" + login + "|")
 	chk(err)
-	_, err = file.WriteString("password:" + password + "]\n")
+	_, err = file.WriteString("password:" + pswHash + "|")
+	chk(err)
+	_, err = file.WriteString("salt:" + salt + "]\n")
 	chk(err)
 
 	err = file.Sync()
@@ -144,26 +147,29 @@ func writeSiteData(data siteData) {
 	chk(err)
 }
 
-func validateUser(w http.ResponseWriter, login string, pass string) {
-	file, err := os.Open("d:/gocode/src/sds-password-manager/server/users.txt")
-	var res bool
-	res = false
-	s := "[login:" + login + "|password:" + pass + "]"
-	if err != nil {
-		log.Fatal(err)
-	}
+func validateUser(w http.ResponseWriter, login string, pswd string) {
+	file, err := os.Open("users.txt")
+	chk(err)
+	var res = false
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		if s == scanner.Text() {
-			res = true
+
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() && !res {
+		result := strings.Split(scanner.Text(), "|")
+		if len(result) > 0 {
+			login := strings.Split(result[0], ":")
+			pswdHashed := strings.Split(result[1], ":")
+			salt := strings.Split(result[2], ":")[1]
+			salt = strings.TrimSuffix(salt, "]")
+			if checkHashedPassword(pswdHashed[1], pswd, salt) {
+				res = true
+				token := generateToken(login[1])
+				response(w, res, token)
+			}
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-	response(w, res, "Resultado")
 }
 
 //DeleteFile borra el fichero
@@ -179,10 +185,6 @@ func response(w io.Writer, ok bool, msg string) {
 	w.Write(rJSON)
 }
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	w.Header().Set("Content-Type", "text/plain")
@@ -195,13 +197,15 @@ func registroHandler(w http.ResponseWriter, r *http.Request) {
 
 	login := r.Form.Get("login")
 	password := r.Form.Get("password")
+	hashed, salt := hashPassword(password)
 
-	writeUser(login, password)
+	writeUser(login, hashed, salt)
 	response(w, true, "UsuarioRegistrado")
 }
 
 func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	e := r.ParseForm()
+	chk(e)
 	w.Header().Set("Content-Type", "text/plain")
 
 	login := r.Form.Get("login")
@@ -210,10 +214,10 @@ func storePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	sitePassword := r.Form.Get("sitePassword")
 
 	data := siteData{Login: login, Site: site, SiteUsername: siteUsername, SitePassword: sitePassword}
-
 	writeSiteData(data)
 	response(w, true, "Información guardada")
 }
+
 func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	key := []byte("example key 1234")
 	r.ParseForm()
@@ -225,6 +229,7 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		result := strings.Split(scanner.Text(), "|")
+if len(result) > 1 {
 		user := strings.Split(result[0], ":")
 		site := strings.Split(result[1], ":")
 		log := strings.Split(result[2], ":")
@@ -239,6 +244,7 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 		if r.Form.Get("site") == string(st) && r.Form.Get("user") == string(usr) {
 			result := "[login:" + string(usr) + "|" + "site:" + string(st) + "|" + "siteUsername:" + string(usrname) + "|" + "sitePassword:" + string(stpswd) + "]"
 			response(w, true, string(result))
+      }
 		}
 	}
 }
@@ -252,11 +258,10 @@ func main() {
 
 	httpsMux := http.NewServeMux()
 
-	httpsMux.Handle("/", http.HandlerFunc(homeHandler))
 	httpsMux.Handle("/registro", http.HandlerFunc(registroHandler))
 	httpsMux.Handle("/login", http.HandlerFunc(loginHandler))
-	httpsMux.Handle("/guardarContraseña", http.HandlerFunc(storePasswordHandler))
-	httpsMux.Handle("/recuperar", http.HandlerFunc(getPasswordHandler))
+	httpsMux.Handle("/guardarContraseña", validateToken(http.HandlerFunc(storePasswordHandler)))
+	httpsMux.Handle("/recuperarContraseña", validateToken(http.HandlerFunc(getPasswordHandler)))
 
 	srv := &http.Server{Addr: ":8081", Handler: httpsMux}
 
