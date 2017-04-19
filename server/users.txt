@@ -1,2 +1,5 @@
 [login:hi|password:ha]
 [login:hello|password:kitty]
+[login:klen|password:klan]
+[login:hello|password:mother]
+[login:miyoshi|password:hanzo]

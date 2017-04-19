@@ -52,7 +52,7 @@ func login(client http.Client) {
 	fmt.Println("Introduce el usuario: ")
 	fmt.Scanf("%s\n", &login)
 	fmt.Println("Introduce el password: ")
-	fmt.Scanf("%s", &password)
+	fmt.Scanf("%s\n", &password)
 	data := url.Values{}
 	data.Set("login", login)
 	data.Set("password", password)
@@ -103,7 +103,7 @@ func registerUser(client http.Client) {
 	fmt.Println("Introduce el usuario: ")
 	fmt.Scanf("%s\n", &login)
 	fmt.Println("Introduce la contraseña: ")
-	fmt.Scanf("%s", &password)
+	fmt.Scanf("%s\n", &password)
 	data := url.Values{}
 	data.Set("login", login)
 	data.Set("password", password)
@@ -113,46 +113,42 @@ func registerUser(client http.Client) {
 	fmt.Println()
 }
 
-func showMenu(client http.Client) {
-	var opc string
-	fmt.Println("Acciones: ")
-	fmt.Println("1.Login")
-	fmt.Println("2.Registro")
-	if token != "" {
-		fmt.Println("3-Guardar contraseña")
-		fmt.Println("4-Recuperar contraseña")
-		fmt.Scanln(&opc)
-		switch opc {
-		case "1":
-			login(client)
-		case "2":
-			registerUser(client)
-		case "3":
-			storePassword(client)
-		default:
-			fmt.Println(opc)
-		}
-	} else {
-		fmt.Scanln(&opc)
-		switch opc {
-		case "1":
-			login(client)
-		case "2":
-			registerUser(client)
-		default:
-			fmt.Println(opc)
-		}
-	}
-	fmt.Println()
-}
-
 func main() {
+	var opc string
+
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
 
 	for {
-		showMenu(*client)
+		fmt.Println("Acciones: ")
+		fmt.Println("1.Login")
+		fmt.Println("2.Registro")
+		if token != "" {
+			fmt.Println("3-Guardar contraseña")
+			fmt.Println("4-Recuperar contraseña")
+			fmt.Scanf("%s\n", &opc)
+			switch opc {
+			case "1":
+				login(*client)
+			case "2":
+				registerUser(*client)
+			case "3":
+				storePassword(*client)
+			default:
+				fmt.Println(opc)
+			}
+		} else {
+			fmt.Scanf("%s\n", &opc)
+			switch opc {
+			case "1":
+				login(*client)
+			case "2":
+				registerUser(*client)
+			default:
+				fmt.Println(opc)
+			}
+		}
 	}
 }
