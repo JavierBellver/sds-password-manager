@@ -1,1 +1,2 @@
-
+[login:ha|site:ha.com|siteUsername:ja|sitePassword:ji]
+[login:ha|site:hola.com|siteUsername:kk|sitePassword:aa]

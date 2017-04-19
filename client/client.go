@@ -123,9 +123,14 @@ func recuperarPass(client http.Client, user string) {
 	data := url.Values{}
 	data.Set("site", site)
 	data.Set("user", user)
-	r, err := client.PostForm("https://localhost:8081/recuperar", data)
+	r, err := http.NewRequest("POST", "https://localhost:8081/recuperarContraseña", bytes.NewBufferString(data.Encode()))
 	chk(err)
-	io.Copy(os.Stdout, r.Body)
+	r.Header.Add("Authorization", "bearer "+token)
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+	res, err := client.Do(r)
+	chk(err)
+	io.Copy(os.Stdout, res.Body)
 	fmt.Println()
 }
 
