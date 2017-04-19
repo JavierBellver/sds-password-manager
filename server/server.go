@@ -3,12 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -59,54 +54,6 @@ func createStorageFile() {
 		chk(err)
 		defer file.Close()
 	}
-}
-
-// See alternate IV creation from ciphertext below
-//var iv = []byte{35, 46, 57, 24, 85, 35, 24, 74, 87, 35, 88, 98, 66, 32, 14, 05}
-
-// encrypt string to base64 crypto using AES
-func encrypt(key []byte, text string) string {
-	// key := []byte(keyText)
-	plaintext := []byte(text)
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err)
-	}
-
-	// The IV needs to be unique, but not secure. Therefore it's common to
-	// include it at the beginning of the ciphertext.
-	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
-	iv := ciphertext[:aes.BlockSize]
-	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		panic(err)
-	}
-
-	stream := cipher.NewCFBEncrypter(block, iv)
-	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
-
-	// convert to base64
-	return base64.URLEncoding.EncodeToString(ciphertext)
-}
-
-// decrypt from base64 to decrypted string
-func decrypt(key []byte, cryptoText string) string {
-	ciphertext, err := base64.URLEncoding.DecodeString(cryptoText)
-	chk(err)
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err)
-	}
-	iv := ciphertext[:aes.BlockSize]
-	ciphertext = ciphertext[aes.BlockSize:]
-
-	stream := cipher.NewCFBDecrypter(block, iv)
-
-	// XORKeyStream can work in-place if the two arguments are the same.
-	stream.XORKeyStream(ciphertext, ciphertext)
-
-	return fmt.Sprintf("%s", ciphertext)
 }
 
 func writeUser(login string, pswHash string, salt string) {
