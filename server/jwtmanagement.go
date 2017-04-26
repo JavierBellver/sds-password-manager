@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -33,7 +32,7 @@ func validateToken(next http.Handler) http.Handler {
 		if err == nil && token.Valid {
 			next.ServeHTTP(w, r)
 		} else {
-			fmt.Println("Invalid token error")
+			response(w, false, "User token invalid")
 		}
 	})
 }
