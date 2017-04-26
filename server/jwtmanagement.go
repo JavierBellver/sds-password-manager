@@ -33,7 +33,7 @@ func validateToken(next http.Handler) http.Handler {
 		if err == nil && token.Valid {
 			next.ServeHTTP(w, r)
 		} else {
-			fmt.Println("Token Error")
+			fmt.Println("Invalid token error")
 		}
 	})
 }

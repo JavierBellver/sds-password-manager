@@ -161,6 +161,7 @@ func main() {
 		if token != "" {
 			fmt.Println("3-Guardar contraseña")
 			fmt.Println("4-Recuperar contraseña")
+			fmt.Println("5-Logout")
 			fmt.Scanf("%s\n", &opc)
 			switch opc {
 			case "1":
@@ -171,6 +172,9 @@ func main() {
 				storePassword(*client)
 			case "4":
 				recuperarPass(*client, usuario)
+			case "5":
+				token = ""
+				fmt.Println("Logging Out")
 			default:
 				fmt.Println(opc)
 			}
