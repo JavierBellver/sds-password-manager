@@ -1,3 +1,2 @@
 
-[login:hello|password:bF6QueSNK77XI7GK7ynrYJisIPpQZnZ7O-RuHJgfQD4=|salt:LUJ3res6bgZfoXhw5_YSnb27TCwOJm1WRaidhZGNyYQ=]
-[login:kaleb|password:a6ZsVOGGklwne5a9qpOXWnewWKpna1tK4j8pzbwUekY=|salt:APQ-xJy7cdK-DR03Kjo5vcefRrGg7fhHe_QyH3Yn5No=]
+[login:hello|password:ojV2orZ9QnPX0NicLWlc5PJCu-cbnL-Lhz4OCk3hIMA=|salt:msLxmm87kTAqeNzMKy5V6mHOvhYTAO35v7L4UKCkAuo=]
