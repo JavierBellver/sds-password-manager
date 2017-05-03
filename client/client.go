@@ -60,8 +60,10 @@ func login(client http.Client) {
 	chk(err)
 	password = string(bytePassword)
 	data := url.Values{}
-	data.Set("login", login)
-	data.Set("password", password)
+	hashUser := hashPassword(login)
+	data.Set("login", hashUser)
+	hash := hashPassword(password)
+	data.Set("password", hash)
 	r, err := client.PostForm("https://localhost:8081/login", data)
 	chk(err)
 	body, err := ioutil.ReadAll(r.Body)
@@ -108,15 +110,18 @@ func storePassword(client http.Client) {
 func registerUser(client http.Client) {
 	var login, password string
 
-	fmt.Println("Introduce el usuario: ")
+	fmt.Println("Introduce el usuario  ")
 	fmt.Scanf("%s\n", &login)
 	fmt.Println("Introduce la contraseña: ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	chk(err)
 	password = string(bytePassword)
 	data := url.Values{}
-	data.Set("login", login)
-	data.Set("password", password)
+	hashUser := hashPassword(login)
+	data.Set("login", hashUser)
+	fmt.Println(hashUser)
+	pswd := hashPassword(password)
+	data.Set("password", pswd)
 	r, err := client.PostForm("https://localhost:8081/registro", data)
 	chk(err)
 	io.Copy(os.Stdout, r.Body)
