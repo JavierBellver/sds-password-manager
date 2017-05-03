@@ -114,7 +114,7 @@ func storePassword(client http.Client) {
 func registerUser(client http.Client) {
 	var login, password string
 
-	fmt.Println("Introduce el usuarioo  ")
+	fmt.Println("Introduce el usuario  ")
 	fmt.Scanf("%s\n", &login)
 	fmt.Println("Introduce la contraseña: ")
 	//fmt.Scanf("%s\n", &password)
