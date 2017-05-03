@@ -30,7 +30,6 @@ import (
 var token string
 var usuario string
 
-// función para comprobar errores (ahorra escritura)
 func chk(e error) {
 	if e != nil {
 		log.Println(e.Error())
@@ -38,10 +37,9 @@ func chk(e error) {
 	}
 }
 
-// respuesta del servidor
 type resp struct {
-	Ok  bool   // true -> correcto, false -> error
-	Msg string // mensaje adicional
+	Ok  bool
+	Msg string
 }
 
 func parseResponse(body []byte) (*resp, error) {
@@ -58,7 +56,6 @@ func login(client http.Client) {
 	fmt.Println("Introduce el usuario: ")
 	fmt.Scanf("%s\n", &login)
 	fmt.Println("Introduce el password: ")
-	//fmt.Scanf("%s\n", &password)
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	chk(err)
 	password = string(bytePassword)
@@ -91,7 +88,6 @@ func storePassword(client http.Client) {
 	fmt.Println("Introduce tu nombre de usuario del sitio web: ")
 	fmt.Scanf("%s\n", &siteUsername)
 	fmt.Println("Introduce la contraseña en el sitio web: ")
-	//fmt.Scanf("%s\n", &sitePassword)
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	chk(err)
 	sitePassword = string(bytePassword)
@@ -117,7 +113,6 @@ func registerUser(client http.Client) {
 	fmt.Println("Introduce el usuario  ")
 	fmt.Scanf("%s\n", &login)
 	fmt.Println("Introduce la contraseña: ")
-	//fmt.Scanf("%s\n", &password)
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	chk(err)
 	password = string(bytePassword)
@@ -166,6 +161,7 @@ func main() {
 		if token != "" {
 			fmt.Println("3-Guardar contraseña")
 			fmt.Println("4-Recuperar contraseña")
+			fmt.Println("5-Logout")
 			fmt.Scanf("%s\n", &opc)
 			switch opc {
 			case "1":
@@ -176,6 +172,9 @@ func main() {
 				storePassword(*client)
 			case "4":
 				recuperarPass(*client, usuario)
+			case "5":
+				token = ""
+				fmt.Println("Logging Out")
 			default:
 				fmt.Println(opc)
 			}

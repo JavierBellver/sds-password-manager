@@ -122,7 +122,6 @@ func validateUser(w http.ResponseWriter, login string, pswd string) {
 	}
 }
 
-//DeleteFile borra el fichero
 func deleteFile() {
 	var err = os.Remove(path)
 	chk(err)
