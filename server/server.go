@@ -57,7 +57,6 @@ func createStorageFile() {
 }
 
 func writeUser(login string, pswHash string, salt string) {
-
 	var file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND, 0660)
 	chk(err)
 	defer file.Close()
@@ -66,11 +65,17 @@ func writeUser(login string, pswHash string, salt string) {
 	chk(err)
 	_, err = file.WriteString("password:" + pswHash + "|")
 	chk(err)
-	_, err = file.WriteString("salt:" + salt + "]\n")
+	_, err = file.WriteString("salt:" + salt + "|")
+	chk(err)
+	_, err = file.WriteString("key:" + generateRandomString(32) + "]\n")
 	chk(err)
 
 	err = file.Sync()
 	chk(err)
+}
+
+func getUserKey(username string) {
+
 }
 
 func writeSiteData(data siteData) {
@@ -112,7 +117,6 @@ func validateUser(w http.ResponseWriter, login string, pswd string) {
 			login := strings.Split(result[0], ":")
 			pswdHashed := strings.Split(result[1], ":")
 			salt := strings.Split(result[2], ":")[1]
-			salt = strings.TrimSuffix(salt, "]")
 			if checkHashedPassword(pswdHashed[1], pswd, salt) {
 				res = true
 				token := generateToken(login[1])
