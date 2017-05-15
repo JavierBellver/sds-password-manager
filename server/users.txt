@@ -2,3 +2,4 @@
 [login:hello|password:ne56_06aUOdGCUqVyVBwxSKNuCJ8HWMTcBlGAiXWuV4=|salt:RdQovxTr9295HD9p1pSYiVeRI8ZOcSPlMK3M5XXWNGw=|key:aO2tF64_dRzrQNT6RIJbOTO1InCgc8jz8vvmCE8Re4k=]
 [login:my|password:5n4iZeYfFA8XpiLNc_8ScVhQYO_5YhbTXDM5v63HEvw=|salt:NTTaOzM2hCaGZAcVe4FwOv-EssQbVxTr5sF_jZx7YVM=|key:6BKyXK4ta-K4bY2soGRqdksuPi1CO0bVEfx5l1FkgIw=]
 [login:marrid|password:2ClBovn1Tdg3tQTrefeXfWnK11qlr_yjtN5sbGdLtO0=|salt:H-Ii_aVEE_LlblAHrCSJkmyMJW0_3yOSDWvSfym4TwA=|key:HNCfOAWICvh03f1RH3hHU8SCA3XdUQmKz_XyYc42uAU=]
+[login:major|password:-lKCk5vCl2BZJJkzlWsX9jRXgkNXkMa9_5BmGPPYxbI=|salt:UmbCslsxPjBZ8WCn7tGRkiWdFu_XD1qP3z5-RXOdkVQ=|key:jOd9DJD770pIu7jg6m0tmNB38XNe4RkTnbqhXpKEv6E=]

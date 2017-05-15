@@ -35,9 +35,7 @@ func validateToken(next http.Handler) http.Handler {
 			return []byte(mySignUpKey), nil
 		})
 
-		claims := token.Claims.(jwt.MapClaims)
-
-		currentUsername = claims["username"].(string)
+		currentUsername = getSessionUsername(token.Raw)
 		if err == nil && token.Valid {
 			next.ServeHTTP(w, r)
 		} else {
