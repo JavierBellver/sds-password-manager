@@ -119,7 +119,6 @@ func registerUser(client http.Client) {
 	data := url.Values{}
 	hashUser := hashPassword(login)
 	data.Set("login", hashUser)
-	fmt.Println(hashUser)
 	pswd := hashPassword(password)
 	data.Set("password", pswd)
 	r, err := client.PostForm("https://localhost:8081/registro", data)
