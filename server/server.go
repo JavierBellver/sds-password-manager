@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"log"
@@ -57,7 +58,6 @@ func createStorageFile() {
 }
 
 func writeUser(login string, pswHash string, salt string) {
-
 	var file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND, 0660)
 	chk(err)
 	defer file.Close()
@@ -66,17 +66,40 @@ func writeUser(login string, pswHash string, salt string) {
 	chk(err)
 	_, err = file.WriteString("password:" + pswHash + "|")
 	chk(err)
-	_, err = file.WriteString("salt:" + salt + "]\n")
+	_, err = file.WriteString("salt:" + salt + "|")
+	chk(err)
+	_, err = file.WriteString("key:" + generateRandomString(32) + "]\n")
 	chk(err)
 
 	err = file.Sync()
 	chk(err)
 }
 
+func getUserKey(username string) []byte {
+	found := false
+	var userkey []byte
+	inFile, _ := os.Open("users.txt")
+	defer inFile.Close()
+	scanner := bufio.NewScanner(inFile)
+	scanner.Split(bufio.ScanLines)
+	for scanner.Scan() && !found {
+		result := strings.Split(scanner.Text(), "|")
+		if len(result) > 1 {
+			login := strings.Split(result[0], ":")[1]
+			key := strings.Split(result[3], ":")[1]
+			if login == username {
+				userkey, _ = base64.URLEncoding.DecodeString(key)
+			}
+		}
+	}
+	return userkey
+}
+
 func writeSiteData(data siteData) {
 	var file, err = os.OpenFile(storagePath, os.O_RDWR|os.O_APPEND, 0660)
 	chk(err)
 	defer file.Close()
+	key := getUserKey(currentUsername)
 	usr := encrypt(key, data.Login)
 	st := encrypt(key, data.Site)
 	usrname := encrypt(key, data.SiteUsername)
@@ -112,7 +135,6 @@ func validateUser(w http.ResponseWriter, login string, pswd string) {
 			login := strings.Split(result[0], ":")
 			pswdHashed := strings.Split(result[1], ":")
 			salt := strings.Split(result[2], ":")[1]
-			salt = strings.TrimSuffix(salt, "]")
 			if checkHashedPassword(pswdHashed[1], pswd, salt) {
 				res = true
 				token := generateToken(login[1])
@@ -185,6 +207,7 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 			log := strings.Split(result[3], ":")
 			pass := strings.Split(result[4], ":")[1]
 			pass = strings.TrimSuffix(pass, "]")
+			key := getUserKey(currentUsername)
 			usr := decrypt(key, user[1])
 			st := decrypt(key, site[1])
 			usrname := decrypt(key, log[1])
