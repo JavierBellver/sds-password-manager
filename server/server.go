@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -61,14 +62,10 @@ func writeUser(login string, pswHash string, salt string) {
 	var file, err = os.OpenFile(path, os.O_RDWR|os.O_APPEND, 0660)
 	chk(err)
 	defer file.Close()
+	var line = "login:" + login + "/" + "password:" + pswHash + "/" + "salt:" + salt + "/" + "key:" + generateRandomString(32)
 
-	_, err = file.WriteString("[login:" + login + "|")
 	chk(err)
-	_, err = file.WriteString("password:" + pswHash + "|")
-	chk(err)
-	_, err = file.WriteString("salt:" + salt + "|")
-	chk(err)
-	_, err = file.WriteString("key:" + generateRandomString(32) + "]\n")
+	_, err = file.WriteString(encrypt(masterKey, line))
 	chk(err)
 
 	err = file.Sync()
@@ -104,16 +101,9 @@ func writeSiteData(data siteData) {
 	st := encrypt(key, data.Site)
 	usrname := encrypt(key, data.SiteUsername)
 	stpswd := encrypt(key, data.SitePassword)
+	var line = "id:" + data.ID + "/" + "login:" + usr + "/" + "site:" + st + "/" + "siteUsername:" + usrname + "/" + "sitePassword:" + stpswd
 
-	_, err = file.WriteString("[id:" + data.ID + "|")
-	chk(err)
-	_, err = file.WriteString("login:" + usr + "|")
-	chk(err)
-	_, err = file.WriteString("site:" + st + "|")
-	chk(err)
-	_, err = file.WriteString("siteUsername:" + usrname + "|")
-	chk(err)
-	_, err = file.WriteString("sitePassword:" + stpswd + "]\n")
+	_, err = file.WriteString(encrypt(masterKey, line) + "\n")
 	chk(err)
 
 	err = file.Sync()
@@ -198,15 +188,18 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	defer inFile.Close()
 	scanner := bufio.NewScanner(inFile)
 	scanner.Split(bufio.ScanLines)
+
 	for scanner.Scan() {
-		result := strings.Split(scanner.Text(), "|")
+		fmt.Println(scanner.Text())
+		var aux = scanner.Text()
+		var msg = decrypt(masterKey, aux)
+		result := strings.Split(msg, "/")
 		if len(result) > 1 {
 			id := strings.Split(result[0], ":")[1]
 			user := strings.Split(result[1], ":")
 			site := strings.Split(result[2], ":")
 			log := strings.Split(result[3], ":")
 			pass := strings.Split(result[4], ":")[1]
-			pass = strings.TrimSuffix(pass, "]")
 			key := getUserKey(currentUsername)
 			usr := decrypt(key, user[1])
 			st := decrypt(key, site[1])
