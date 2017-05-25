@@ -11,6 +11,8 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
+var masterKey = []byte("998e8d1054527a58e1c9491f4e25e13d")
+
 func generateRandomBytes(n int) []byte {
 	b := make([]byte, n)
 	_, err := rand.Read(b)
