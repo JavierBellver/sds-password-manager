@@ -17,7 +17,7 @@ func generateToken(username string) string {
 	claims := token.Claims.(jwt.MapClaims)
 
 	claims["username"] = username
-	claims["exp"] = time.Now().Add(time.Minute * 1)
+	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
 
 	tokenString, err := token.SignedString(mySignUpKey)
 
@@ -37,12 +37,16 @@ func validateToken(next http.Handler) http.Handler {
 				return nil, fmt.Errorf("Algoritmo de firma invalido")
 			}
 
+			claims := token.Claims.(jwt.MapClaims)
+
+			if claims.Valid() != nil {
+				return nil, fmt.Errorf("Token expirado")
+			}
+			fmt.Println(claims["exp"])
+
 			return []byte(mySignUpKey), nil
 		})
 
-		claims := token.Claims.(jwt.MapClaims)
-
-		fmt.Println(claims["exp"])
 		currentUsername = getSessionUsername(token.Raw)
 		if err == nil && token.Valid {
 			next.ServeHTTP(w, r)
