@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -140,6 +139,9 @@ func validateUser(w http.ResponseWriter, login string, pswd string) {
 			}
 		}
 	}
+	if !res {
+		response(w, false, "Error, the user doesnt exist")
+	}
 }
 
 func deleteFile() {
@@ -198,7 +200,6 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	scanner.Split(bufio.ScanLines)
 
 	for scanner.Scan() {
-		fmt.Println(scanner.Text())
 		var aux = scanner.Text()
 		if len(aux) > 0 {
 			var msg = decrypt(masterKey, aux)
