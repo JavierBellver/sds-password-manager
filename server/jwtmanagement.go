@@ -42,7 +42,6 @@ func validateToken(next http.Handler) http.Handler {
 			if claims.Valid() != nil {
 				return nil, fmt.Errorf("Token expirado")
 			}
-			fmt.Println(claims["exp"])
 
 			return []byte(mySignUpKey), nil
 		})
