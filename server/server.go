@@ -65,7 +65,7 @@ func writeUser(login string, pswHash string, salt string) {
 	var line = "login:" + login + "/" + "password:" + pswHash + "/" + "salt:" + salt + "/" + "key:" + generateRandomString(32)
 
 	chk(err)
-	_, err = file.WriteString(encrypt(masterKey, line))
+	_, err = file.WriteString(encrypt(masterKey, line) + "\n")
 	chk(err)
 
 	err = file.Sync()
@@ -80,12 +80,16 @@ func getUserKey(username string) []byte {
 	scanner := bufio.NewScanner(inFile)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() && !found {
-		result := strings.Split(scanner.Text(), "|")
-		if len(result) > 1 {
-			login := strings.Split(result[0], ":")[1]
-			key := strings.Split(result[3], ":")[1]
-			if login == username {
-				userkey, _ = base64.URLEncoding.DecodeString(key)
+		var aux = scanner.Text()
+		if len(aux) > 0 {
+			var msg = decrypt(masterKey, aux)
+			result := strings.Split(msg, "/")
+			if len(result) > 1 {
+				login := strings.Split(result[0], ":")[1]
+				key := strings.Split(result[3], ":")[1]
+				if login == username {
+					userkey, _ = base64.URLEncoding.DecodeString(key)
+				}
 			}
 		}
 	}
@@ -120,15 +124,19 @@ func validateUser(w http.ResponseWriter, login string, pswd string) {
 
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() && !res {
-		result := strings.Split(scanner.Text(), "|")
-		if len(result) > 1 {
-			login := strings.Split(result[0], ":")
-			pswdHashed := strings.Split(result[1], ":")
-			salt := strings.Split(result[2], ":")[1]
-			if checkHashedPassword(pswdHashed[1], pswd, salt) {
-				res = true
-				token := generateToken(login[1])
-				response(w, res, token)
+		var aux = scanner.Text()
+		if len(aux) > 0 {
+			var msg = decrypt(masterKey, aux)
+			result := strings.Split(msg, "/")
+			if len(result) > 1 {
+				login := strings.Split(result[0], ":")
+				pswdHashed := strings.Split(result[1], ":")
+				salt := strings.Split(result[2], ":")[1]
+				if checkHashedPassword(pswdHashed[1], pswd, salt) {
+					res = true
+					token := generateToken(login[1])
+					response(w, res, token)
+				}
 			}
 		}
 	}
@@ -192,23 +200,25 @@ func getPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	for scanner.Scan() {
 		fmt.Println(scanner.Text())
 		var aux = scanner.Text()
-		var msg = decrypt(masterKey, aux)
-		result := strings.Split(msg, "/")
-		if len(result) > 1 {
-			id := strings.Split(result[0], ":")[1]
-			user := strings.Split(result[1], ":")
-			site := strings.Split(result[2], ":")
-			log := strings.Split(result[3], ":")
-			pass := strings.Split(result[4], ":")[1]
-			key := getUserKey(currentUsername)
-			usr := decrypt(key, user[1])
-			st := decrypt(key, site[1])
-			usrname := decrypt(key, log[1])
-			stpswd := decrypt(key, pass)
+		if len(aux) > 0 {
+			var msg = decrypt(masterKey, aux)
+			result := strings.Split(msg, "/")
+			if len(result) > 1 {
+				id := strings.Split(result[0], ":")[1]
+				user := strings.Split(result[1], ":")
+				site := strings.Split(result[2], ":")
+				log := strings.Split(result[3], ":")
+				pass := strings.Split(result[4], ":")[1]
+				key := getUserKey(currentUsername)
+				usr := decrypt(key, user[1])
+				st := decrypt(key, site[1])
+				usrname := decrypt(key, log[1])
+				stpswd := decrypt(key, pass)
 
-			if r.Form.Get("site") == string(st) && r.Form.Get("user") == string(usr) {
-				result := "[id:" + string(id) + "|" + "login:" + string(usr) + "|" + "site:" + string(st) + "|" + "siteUsername:" + string(usrname) + "|" + "sitePassword:" + string(stpswd) + "]"
-				response(w, true, string(result))
+				if r.Form.Get("site") == string(st) && r.Form.Get("user") == string(usr) {
+					result := "[id:" + string(id) + "|" + "login:" + string(usr) + "|" + "site:" + string(st) + "|" + "siteUsername:" + string(usrname) + "|" + "sitePassword:" + string(stpswd) + "]"
+					response(w, true, string(result))
+				}
 			}
 		}
 	}
